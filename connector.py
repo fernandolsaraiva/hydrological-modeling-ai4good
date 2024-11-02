@@ -13,3 +13,5 @@ try:
     print("Conexão com o banco de dados bem-sucedida!")
 except OperationalError as e:
     print("Erro ao conectar ao banco de dados:", e)
+
+    
