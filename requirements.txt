@@ -3,3 +3,5 @@ streamlit_folium
 folium
 watchdog
 plotly
+python-dotenv
+psycopg2
