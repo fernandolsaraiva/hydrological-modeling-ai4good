@@ -26,6 +26,11 @@ stations = [
     {"code": "563", "name": "Córrego Ipiranga - Pç. Leonor Kaupa", "lat": -23.619963, "lon": -46.627853},
     {"code": "629", "name": "Córrego Moinho Velho - R. Dois de Julho", "lat": -23.595544, "lon": -46.597368}
 ]
+from PIL import Image
+logo = Image.open("cemaden_logo.png")
+st.sidebar.image(logo, use_column_width=True)
+
+st.header('AI Flood Alert System')
 
 # Criação do mapa centralizado em São Paulo
 mapa_sp = folium.Map(location=[-23.5505, -46.6333], zoom_start=11)
