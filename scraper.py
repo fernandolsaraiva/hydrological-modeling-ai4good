@@ -19,7 +19,7 @@ def getDate():
     date = datetime.utcnow() # current date and time
     return date
 
-def getNivel(date):
+def getNivel(date,station=33767):
     year = date.strftime("%Y")
     month = date.strftime("%m")
     day = date.strftime("%d")
@@ -27,7 +27,6 @@ def getNivel(date):
     year_yesterday = date_yesterday.strftime("%Y")
     month_yesterday = date_yesterday.strftime("%m")
     day_yesterday = date_yesterday.strftime("%d")
-    station=33767
     url_new = f"https://cth.daee.sp.gov.br/sibh/api/v1/measurements/grouped?format=csv&start_date={year_yesterday}-{month_yesterday}-{day_yesterday}%2003%3A00&end_date={year}-{month}-{day}%2002%3A59&group_type=none&transmission_type_ids%5B%5D=1&transmission_type_ids%5B%5D=2&transmission_type_ids%5B%5D=3&transmission_type_ids%5B%5D=4&transmission_type_ids%5B%5D=5&transmission_type_ids%5B%5D=6&station_prefix_ids%5B%5D={station}"
     json_value = getJson(url_new)
     print(json_value)
@@ -48,7 +47,7 @@ def upsertData(df):
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     upsert_query = f"""
-        INSERT INTO timeseries.data_station ({', '.join(db_columns)}, created_at, updated_at) 
+        INSERT INTO timeseries.data_station_flu ({', '.join(db_columns)}, created_at, updated_at) 
         VALUES ({', '.join(['%s'] * len(db_columns))}, NOW(), NOW())
         ON CONFLICT (station, timestamp)
         DO UPDATE SET 
@@ -57,15 +56,34 @@ def upsertData(df):
         """
     cursor.executemany(upsert_query, data_tuples)
     conn.commit()
-    print("Dados inseridos/atualizados com sucesso na tabela timeseries.data_station!")
+    print("Dados inseridos/atualizados com sucesso na tabela timeseries.data_station_flu!")
     cursor.close()
     conn.close()
 
 
+def downloadDataAndUpsert():
+    # Get the date of the last data in the database
+    DATABASE_URL = os.getenv('DATABASE_URL')
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute("SELECT MAX(timestamp) FROM timeseries.data_station_flu")
+    last_data_date = cursor.fetchone()[0]
+    cursor.close()
+    conn.close()
+
+    if last_data_date is None:
+        last_data_date = datetime(2024, 5, 6)
+
+    today = datetime.utcnow()
+    while last_data_date < today:
+        df = getNivel(last_data_date, station = 33767)
+        upsertData(df)
+        print(f'Dados inseridos/atualizados com sucesso na tabela timeseries.data_station_flu! para o dia {last_data_date}')
+        last_data_date = last_data_date + timedelta(days=1)
 
 if __name__ == '__main__':
-    date = getDate()    
-    df = getNivel(date)
-    print(df)
-    upsertData(df)
+    # date = getDate()    
+    # df = getNivel(date, station = 33767)
+    # upsertData(df)
+    downloadDataAndUpsert()
     print('Concluído')
