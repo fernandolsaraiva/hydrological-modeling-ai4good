@@ -27,8 +27,8 @@ stations = [
     {"code": "629", "name": "Córrego Moinho Velho - R. Dois de Julho", "lat": -23.595544, "lon": -46.597368}
 ]
 from PIL import Image
-logo = Image.open("cemaden_logo.png")
-st.sidebar.image(logo, use_column_width=True)
+# logo = Image.open("cemaden_logo.png")
+# st.sidebar.image(logo, use_column_width=True)
 
 st.header('AI Flood Alert System')
 
