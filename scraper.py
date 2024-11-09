@@ -8,6 +8,7 @@ from io import StringIO
 import numpy as np
 import pandas as pd
 import psycopg2
+import pytz
 import requests
 
 
@@ -22,7 +23,6 @@ def getDate():
     date = datetime.utcnow()  # current date and time
     return date
 
-
 def getDataStation(date, station=33767):
     year = date.strftime("%Y")
     month = date.strftime("%m")
@@ -33,7 +33,6 @@ def getDataStation(date, station=33767):
     day_yesterday = date_yesterday.strftime("%d")
     url_new = f"https://cth.daee.sp.gov.br/sibh/api/v1/measurements/grouped?format=csv&start_date={year_yesterday}-{month_yesterday}-{day_yesterday}%2003%3A00&end_date={year}-{month}-{day}%2002%3A59&group_type=none&transmission_type_ids%5B%5D=1&transmission_type_ids%5B%5D=2&transmission_type_ids%5B%5D=3&transmission_type_ids%5B%5D=4&transmission_type_ids%5B%5D=5&transmission_type_ids%5B%5D=6&station_prefix_ids%5B%5D={station}"
     json_value = getJson(url_new)
-    print(json_value)
     json_value_transformed = StringIO(json_value)
     df = pd.read_csv(json_value_transformed, delimiter=";")
     df.to_csv("teste.csv", index=False)
@@ -60,59 +59,8 @@ def upsertData(df, table="timeseries.data_station_flu"):
         """
     cursor.executemany(upsert_query, data_tuples)
     conn.commit()
-    print(f"Dados inseridos/atualizados com sucesso na tabela {table}!")
     cursor.close()
     conn.close()
-
-
-def downloadDataAndUpsert():
-    # Get the date of the last data in the database
-    DATABASE_URL = os.getenv("DATABASE_URL")
-    conn = psycopg2.connect(DATABASE_URL)
-    cursor = conn.cursor()
-    cursor.execute("SELECT MAX(timestamp) FROM timeseries.data_station_flu")
-    last_data_date = cursor.fetchone()[0]
-    cursor.close()
-    conn.close()
-
-    if last_data_date is None:
-        last_data_date = datetime(2024, 5, 6)
-
-    today = datetime.utcnow()
-    while last_data_date < today:
-        df = getDataStation(last_data_date, station=33767)
-        upsertData(df)
-        print(
-            f"Dados inseridos/atualizados com sucesso na tabela timeseries.data_station_flu! para o dia {last_data_date}"
-        )
-        last_data_date = last_data_date + timedelta(days=1)
-
-
-# I would like a function similar to downloadDataAndUpsert, but that would receive a list of stations and
-# download the data for all stations in the list, day by day, up to the current date.
-def downloadDataAndUpsertMultipleStations(stations_flu):
-    # Get the date of the last data in the database
-    DATABASE_URL = os.getenv("DATABASE_URL")
-    conn = psycopg2.connect(DATABASE_URL)
-    cursor = conn.cursor()
-    cursor.execute("SELECT MAX(timestamp) FROM timeseries.data_station_flu")
-    last_data_date = cursor.fetchone()[0]
-    cursor.close()
-    conn.close()
-
-    if last_data_date is None:
-        last_data_date = datetime(2024, 5, 6)
-
-    today = datetime.utcnow()
-    while last_data_date < today:
-        for station in stations_flu:
-            df = getDataStation(last_data_date, station=station)
-            upsertData(df)
-            print(
-                f"Dados inseridos/atualizados com sucesso na tabela timeseries.data_station_flu! para o dia {last_data_date}"
-            )
-        last_data_date = last_data_date + timedelta(days=1)
-
 
 def downloadDataAndUpsertMultipleStations(stations_flu, stations_plu):
     # Get the date of the last data in the database
@@ -125,21 +73,21 @@ def downloadDataAndUpsertMultipleStations(stations_flu, stations_plu):
     conn.close()
 
     if last_data_date is None:
-        last_data_date = datetime(2024, 5, 6)
+        last_data_date = datetime(2024, 5, 6, tzinfo=pytz.UTC)
 
-    today = datetime.utcnow()
+    today = today = datetime.now(pytz.UTC)  # Usando datetime.now() com UTC
     while last_data_date < today:
         for station in stations_flu:
             df = getDataStation(last_data_date, station=station)
-            upsertData(df, table="timeseries.data_station_flu")
+            upsertData(df,table="timeseries.data_station_flu")
             print(
-                f"Dados inseridos/atualizados com sucesso na tabela timeseries.data_station_flu para o dia {last_data_date}"
+                f"Dados da estação {station} inseridos/atualizados com sucesso na tabela timeseries.data_station_flu para o dia {last_data_date}"
             )
         for station in stations_plu:
             df = getDataStation(last_data_date, station=station)
-            upsertData(df, table="timeseries.data_station_plu")
+            upsertData(df,table="timeseries.data_station_plu")
             print(
-                f"Dados inseridos/atualizados com sucesso na tabela timeseries.data_station_plu para o dia {last_data_date}"
+                f"Dados da estação {station} inseridos/atualizados com sucesso na tabela timeseries.data_station_plu para o dia {last_data_date}"
             )
         last_data_date = last_data_date + timedelta(days=1)
 
@@ -149,13 +97,13 @@ def downloadDataAndUpsertMultipleStations(stations_flu, stations_plu):
                 df = getDataStation(last_data_date, station=station)
                 upsertData(df, table="timeseries.data_station_flu")
                 print(
-                    f"Dados inseridos/atualizados com sucesso na tabela timeseries.data_station_flu para o dia {last_data_date}"
+                    f"Dados da estação {station} inseridos/atualizados com sucesso na tabela timeseries.data_station_flu para o dia {last_data_date}"
                 )
             for station in stations_plu:
                 df = getDataStation(last_data_date, station=station)
-                upsertData(df, table="timeseries.data_station_plu")
+                upsertData(df,table="timeseries.data_station_plu")
                 print(
-                    f"Dados inseridos/atualizados com sucesso na tabela timeseries.data_station_plu para o dia {last_data_date}"
+                    f"Dados da estação {station} inseridos/atualizados com sucesso na tabela timeseries.data_station_plu para o dia {last_data_date}"
                 )
             time.sleep(600)
             last_data_date = datetime.utcnow()
@@ -164,9 +112,6 @@ def downloadDataAndUpsertMultipleStations(stations_flu, stations_plu):
 if __name__ == "__main__":
     stations_flu = [33767]
     stations_plu = [33768]
-    # date = getDate()
-    # df = getNivel(date, station = 33767)
-    # upsertData(df)
-    downloadDataAndUpsert()
-    print("Concluído")
-    print("teste")
+    while True:
+        downloadDataAndUpsertMultipleStations(stations_flu, stations_plu)
+        time.sleep(600) 
