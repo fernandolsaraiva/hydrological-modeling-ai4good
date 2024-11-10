@@ -74,16 +74,11 @@ def downloadDataAndUpsertMultipleStations(stations_flu, stations_plu):
     conn.close()
 
     if last_data_date is None:
-        last_data_date = datetime(2024, 11, 9, tzinfo=pytz.UTC)
-        print('entrou aqui')
-        print(last_data_date)
+        last_data_date = datetime(2023, 1, 1, tzinfo=pytz.UTC)
 
     last_data_date = last_data_date.astimezone(pytz.timezone('America/Sao_Paulo'))
-    print('depois da mudança de timezone',last_data_date)
     today = datetime.now(pytz.timezone('America/Sao_Paulo'))
     
-    print('last_data_date',last_data_date)
-    print('today',today)
     
     while last_data_date.date() < today.date():
         for station in stations_flu:
