@@ -23,16 +23,17 @@ def getDate():
     date = datetime.utcnow()  # current date and time
     return date
 
-def getDataStation(date, station=33767):
-    year = date.strftime("%Y")
-    month = date.strftime("%m")
-    day = date.strftime("%d")
-    date_yesterday = date - timedelta(days=1)
-    year_yesterday = date_yesterday.strftime("%Y")
-    month_yesterday = date_yesterday.strftime("%m")
-    day_yesterday = date_yesterday.strftime("%d")
-    url_new = f"https://cth.daee.sp.gov.br/sibh/api/v1/measurements/grouped?format=csv&start_date={year_yesterday}-{month_yesterday}-{day_yesterday}%2003%3A00&end_date={year}-{month}-{day}%2002%3A59&group_type=none&transmission_type_ids%5B%5D=1&transmission_type_ids%5B%5D=2&transmission_type_ids%5B%5D=3&transmission_type_ids%5B%5D=4&transmission_type_ids%5B%5D=5&transmission_type_ids%5B%5D=6&station_prefix_ids%5B%5D={station}"
-    json_value = getJson(url_new)
+def getDataStation(date, station=33767, interval=1):
+    date_start = date-timedelta(days=interval-1)
+    year_start = date_start.strftime("%Y")
+    month_start = date_start.strftime("%m")
+    day_start = date_start.strftime("%d")
+    date_end = date + timedelta(days=1)
+    year_end = date_end.strftime("%Y")
+    month_end = date_end.strftime("%m")
+    day_end = date_end.strftime("%d")
+    url_newest = f"https://cth.daee.sp.gov.br/sibh/api/v1/measurements/grouped?format=csv&start_date={year_start}-{month_start}-{day_start}%2003%3A00&end_date={year_end}-{month_end}-{day_end}%2002%3A59&group_type=none&transmission_type_ids%5B%5D=1&transmission_type_ids%5B%5D=2&transmission_type_ids%5B%5D=3&transmission_type_ids%5B%5D=4&transmission_type_ids%5B%5D=5&transmission_type_ids%5B%5D=6&station_prefix_ids%5B%5D={station}"
+    json_value = getJson(url_newest)
     json_value_transformed = StringIO(json_value)
     df = pd.read_csv(json_value_transformed, delimiter=";")
     df.to_csv("teste.csv", index=False)
@@ -73,10 +74,18 @@ def downloadDataAndUpsertMultipleStations(stations_flu, stations_plu):
     conn.close()
 
     if last_data_date is None:
-        last_data_date = datetime(2024, 5, 6, tzinfo=pytz.UTC)
+        last_data_date = datetime(2024, 11, 9, tzinfo=pytz.UTC)
+        print('entrou aqui')
+        print(last_data_date)
 
-    today = today = datetime.now(pytz.UTC)  # Usando datetime.now() com UTC
-    while last_data_date < today:
+    last_data_date = last_data_date.astimezone(pytz.timezone('America/Sao_Paulo'))
+    print('depois da mudança de timezone',last_data_date)
+    today = datetime.now(pytz.timezone('America/Sao_Paulo'))
+    
+    print('last_data_date',last_data_date)
+    print('today',today)
+    
+    while last_data_date.date() < today.date():
         for station in stations_flu:
             df = getDataStation(last_data_date, station=station)
             upsertData(df,table="timeseries.data_station_flu")
@@ -91,27 +100,29 @@ def downloadDataAndUpsertMultipleStations(stations_flu, stations_plu):
             )
         last_data_date = last_data_date + timedelta(days=1)
 
-    if last_data_date == today:
+    if last_data_date.date() == today.date():
         while True:
             for station in stations_flu:
-                df = getDataStation(last_data_date, station=station)
+                df = getDataStation(last_data_date, station=station, interval=2) # interval=2 para pegar os dados do dia anterior e evitar perda de dado em alguma estação por atraso na atualização
                 upsertData(df, table="timeseries.data_station_flu")
                 print(
                     f"Dados da estação {station} inseridos/atualizados com sucesso na tabela timeseries.data_station_flu para o dia {last_data_date}"
                 )
             for station in stations_plu:
-                df = getDataStation(last_data_date, station=station)
+                df = getDataStation(last_data_date, station=station, interval=2)
                 upsertData(df,table="timeseries.data_station_plu")
                 print(
                     f"Dados da estação {station} inseridos/atualizados com sucesso na tabela timeseries.data_station_plu para o dia {last_data_date}"
                 )
             time.sleep(600)
+            print('Waiting 10 minutes...')
             last_data_date = datetime.utcnow()
 
 
 if __name__ == "__main__":
-    stations_flu = [33767]
-    stations_plu = [33768]
+    stations_flu = [33737,33751,33752,33755,33767,33846,33850,33678,33681,33682,33711,33684,33690,796,33715,33182,33183,33181,33185,33705,797,33736]
+
+    stations_plu = [33738,33750,33753,33754,33768,33848,33847,33851,33184,33709,33710,33683,33712,33685,33691,33692,33694,33716,33223,33703,33706,33725,33734]
+    
     while True:
-        downloadDataAndUpsertMultipleStations(stations_flu, stations_plu)
-        time.sleep(600) 
+        downloadDataAndUpsertMultipleStations(stations_flu, stations_plu) 
