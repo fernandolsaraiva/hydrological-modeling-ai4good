@@ -114,10 +114,10 @@ def downloadDataAndUpsertMultipleStations(stations_flu, stations_plu):
                 print(
                     f"Dados da estação {station} inseridos/atualizados com sucesso na tabela timeseries.data_station_plu para o dia {last_data_date}"
                 )
-            time.sleep(600)
-            print('Waiting 10 minutes...')
+            print('Waiting 10 seconds...')
+            time.sleep(10)
             last_data_date = datetime.utcnow()
-
+            last_data_date = last_data_date.astimezone(pytz.timezone('America/Sao_Paulo'))
 
 if __name__ == "__main__":
     stations_flu = [33737,33751,33752,33755,33767,33846,33850,33678,33681,33682,33711,33684,33690,796,33715,33182,33183,33181,33185,33705,797,33736]
