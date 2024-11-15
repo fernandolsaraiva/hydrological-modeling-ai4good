@@ -6,3 +6,5 @@ plotly
 python-dotenv
 psycopg2
 black
+xgboost
+scikit-learn
