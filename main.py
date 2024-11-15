@@ -46,19 +46,3 @@ for station in stations:
         tooltip=station["name"],
         icon=folium.Icon(icon="tint", prefix="fa", color="blue")
     ).add_to(mapa_sp)
-
-# Exibe o mapa e captura eventos de clique
-map_click = st_folium(mapa_sp, width=700, height=500)
-
-# Verifica se uma estação foi clicada
-if map_click and "last_object_clicked" in map_click:
-    lat_clicked = map_click["last_object_clicked"]["lat"]
-    lon_clicked = map_click["last_object_clicked"]["lng"]
-    
-    # Identifica a estação correspondente ao clique e salva no session_state
-    for station in stations:
-        if station["lat"] == lat_clicked and station["lon"] == lon_clicked:
-            st.session_state["selected_station"] = station
-            st.success(f"Selected station: {station['name']}")
-            st.info("Go to the 'Station Graph' tab to view the time series.")
-            break
