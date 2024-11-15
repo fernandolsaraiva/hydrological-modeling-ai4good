@@ -1,0 +1,45 @@
+# Ignorar arquivos de ambiente virtual
+venv/
+env/
+.venv/
+ENV/
+.ENV/
+
+# Ignorar arquivos de configuração do Git
+.git/
+.gitignore
+
+# Ignorar logs
+*.log
+
+# Ignorar arquivos de teste e cobertura
+tests/
+*.coverage
+coverage/
+.tox/
+.nox/
+
+# Ignorar cache do Python
+__pycache__/
+*.py[cod]
+
+# Ignorar arquivos temporários
+*.swp
+*.swo
+
+# Ignorar arquivos de documentação local
+docs/
+*.md
+
+# Ignorar arquivos gerados localmente
+dist/
+build/
+*.egg-info/
+
+# Ignorar arquivos de IDEs
+.vscode/
+.idea/
+
+# Ignorar arquivos de sistema
+.DS_Store
+Thumbs.db

@@ -1,11 +1,9 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
 import xgboost as xgb
+from sklearn.model_selection import train_test_split
 
-# Abaixo quero fazer um import da função get_station_data do script 1_Hydrological_Monitoring e por o nome de get_station_data_flu
+from util import get_station_data_flu, get_station_data_plu
 
-
-from get_station_data import get_station_data  # Assuming this function is available in your repo
 
 class HydrologicalModel:
     def __init__(self, start_time, end_time, lags, model_type='xgboost'):
@@ -17,8 +15,8 @@ class HydrologicalModel:
 
     def fetch_data(self):
         # Fetch data from the database using the provided function
-        river_data = get_station_data('river', self.start_time, self.end_time)
-        rain_data = get_station_data('rain', self.start_time, self.end_time)
+        river_data = get_station_data_flu('river', self.start_time, self.end_time)
+        rain_data = get_station_data_plu('rain', self.start_time, self.end_time)
         return river_data, rain_data
 
     def create_features(self, river_data, rain_data):
