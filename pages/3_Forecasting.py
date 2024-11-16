@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
+from PIL import Image
 
 # Configuração da página
 st.set_page_config(page_title="Flood Alert System - Station Graph", layout="wide")
@@ -49,3 +50,9 @@ if "selected_station" in st.session_state:
 
 else:
     st.warning("No station selected. Go to the 'Map' tab and click on a station.")
+
+if __name__ == "__main__":
+    logo = Image.open("img/logo_ifast.png")
+    st.sidebar.image(logo, width=200)
+    logo = Image.open("img/logo_ai4good.png")
+    st.sidebar.image(logo, width=150)

@@ -1,5 +1,6 @@
 import folium
 import streamlit as st
+from PIL import Image
 from streamlit_folium import st_folium
 
 # Configuração da página
@@ -32,8 +33,11 @@ stations = [
 
 # crie a abaixo a função principal chamando aquele negócio de __main__
 if __name__ == '__main__':
-    # logo = Image.open("cemaden_logo.png")
-    # st.sidebar.image(logo, use_column_width=True)
+    logo = Image.open("img/logo_ifast.png")
+    st.sidebar.image(logo, width=200)
+    logo = Image.open("img/logo_ai4good.png")
+    st.sidebar.image(logo, width=150)
+
 
     st.header('AI Flood Alert System')
 

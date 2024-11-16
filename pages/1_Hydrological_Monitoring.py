@@ -5,7 +5,7 @@ import plotly.express as px
 import psycopg2
 import streamlit as st
 from util import get_station_data_flu
-
+from PIL import Image
 
 # Função para conectar ao banco de dados e buscar os nomes das estações
 def get_station_names():
@@ -17,6 +17,10 @@ def get_station_names():
     return df['name'].tolist()
 
 if __name__ == "__main__":
+    logo = Image.open("img/logo_ifast.png")
+    st.sidebar.image(logo, width=200)
+    logo = Image.open("img/logo_ai4good.png")
+    st.sidebar.image(logo, width=150)
     st.title('Hydrological Monitoring')
 
     station_names = get_station_names()
