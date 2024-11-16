@@ -1,6 +1,7 @@
 import os
-import psycopg2
+
 import pandas as pd
+import psycopg2
 
 
 # Função para buscar os dados da estação selecionada
@@ -30,7 +31,7 @@ def get_station_data_flu(station_name, start_date, end_date, aggregation):
     return df
 
 # Função para buscar os dados da estação selecionada
-def get_station_data_plu(station_name, start_date, end_date, aggregation):
+def get_station_data_plu(station_name, start_date, end_date, aggregation = '10-minute'):
     DATABASE_URL = os.getenv("DATABASE_URL")
     conn = psycopg2.connect(DATABASE_URL)
     query = f"""
@@ -54,3 +55,12 @@ def get_station_data_plu(station_name, start_date, end_date, aggregation):
     elif aggregation == 'Daily':
         df = df.resample('D').mean().reset_index()
     return df
+
+# Função para buscar os nomes de todas as estações na tabela station.stations_plu e retornar uma lista
+def get_station_names_plu():
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    conn = psycopg2.connect(DATABASE_URL)
+    query = "SELECT * FROM station.station_plu"
+    df = pd.read_sql(query, conn)
+    conn.close()
+    return df['name'].tolist()

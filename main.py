@@ -30,19 +30,24 @@ stations = [
     {"code": "629", "name": "Córrego Moinho Velho - R. Dois de Julho", "lat": -23.595544, "lon": -46.597368}
 ]
 
-# logo = Image.open("cemaden_logo.png")
-# st.sidebar.image(logo, use_column_width=True)
+# crie a abaixo a função principal chamando aquele negócio de __main__
+if __name__ == '__main__':
+    # logo = Image.open("cemaden_logo.png")
+    # st.sidebar.image(logo, use_column_width=True)
 
-st.header('AI Flood Alert System')
+    st.header('AI Flood Alert System')
 
-# Criação do mapa centralizado em São Paulo
-mapa_sp = folium.Map(location=[-23.5505, -46.6333], zoom_start=11)
+    # Criação do mapa centralizado em São Paulo
+    mapa_sp = folium.Map(location=[-23.5505, -46.6333], zoom_start=11)
 
-# Adiciona marcadores das estações hidrológicas com ícones personalizados
-for station in stations:
-    folium.Marker(
-        location=[station["lat"], station["lon"]],
-        popup=station["name"],
-        tooltip=station["name"],
-        icon=folium.Icon(icon="tint", prefix="fa", color="blue")
-    ).add_to(mapa_sp)
+    # Adiciona marcadores das estações hidrológicas com ícones personalizados
+    for station in stations:
+        folium.Marker(
+            location=[station["lat"], station["lon"]],
+            popup=station["name"],
+            tooltip=station["name"],
+            icon=folium.Icon(icon="tint", prefix="fa", color="blue")
+        ).add_to(mapa_sp)
+    
+    # Exibe o mapa e captura eventos de clique
+    map_click = st_folium(mapa_sp, width=700, height=500)
