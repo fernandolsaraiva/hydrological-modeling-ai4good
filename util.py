@@ -2,6 +2,7 @@ import os
 
 import pandas as pd
 import psycopg2
+from sqlalchemy import create_engine
 
 
 # Função para buscar os dados da estação selecionada
@@ -19,15 +20,18 @@ def get_station_data_flu(station_name, start_date, end_date, aggregation):
     df = pd.read_sql(query, conn)
     conn.close()
 
-    df = df[['timestamp', 'value']]
+    df = df[['timestamp', 'value','station']]
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df = df.set_index('timestamp')
+    station_code = df['station'].iloc[0]
+    df = df.drop(columns=['station'])
     if aggregation == '10-minute':
         df = df.resample('10T').mean().reset_index()
     elif aggregation == 'Hourly':
         df = df.resample('H').mean().reset_index()
     elif aggregation == 'Daily':
         df = df.resample('D').mean().reset_index()
+    df['station'] = station_code
     return df
 
 # Função para buscar os dados da estação selecionada
@@ -45,15 +49,18 @@ def get_station_data_plu(station_name, start_date, end_date, aggregation = '10-m
     df = pd.read_sql(query, conn)
     conn.close()
 
-    df = df[['timestamp', 'value']]
+    df = df[['timestamp', 'value','station']]
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df = df.set_index('timestamp')
+    station_code = df['station'].iloc[0]
+    df = df.drop(columns=['station'])
     if aggregation == '10-minute':
-        df = df.resample('10T').mean().reset_index()
+        df = df.resample('10min').mean().reset_index()
     elif aggregation == 'Hourly':
         df = df.resample('H').mean().reset_index()
     elif aggregation == 'Daily':
         df = df.resample('D').mean().reset_index()
+    df['station'] = station_code
     return df
 
 # Função para buscar os nomes de todas as estações na tabela station.stations_plu e retornar uma lista

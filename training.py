@@ -17,6 +17,9 @@ df = pd.DataFrame()
 
 for station_name in station_names_plu:
     station_data = get_station_data_plu(station_name, start_time, end_time, '10-minute')
+    station_code = station_data['station'].iloc[0]
+    station_name = 'plu_' + str(station_code)
+    station_data = station_data.drop(columns=['station'])
     station_data = station_data.rename(columns={'value': station_name})
     if df.empty:
         df = station_data
