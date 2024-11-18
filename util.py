@@ -2,7 +2,6 @@ import os
 
 import pandas as pd
 import psycopg2
-from sqlalchemy import create_engine
 
 
 # Função para buscar os dados da estação selecionada

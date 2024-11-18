@@ -5,8 +5,7 @@ import pandas as pd
 from util import (get_station_data_flu, get_station_data_plu,
                   get_station_names_plu)
 
-
-# %%
+# Functions
 def load_pluviometric_data(start_time, end_time, station_names='all', aggregation='10-minute'):
     df = pd.DataFrame()
     
