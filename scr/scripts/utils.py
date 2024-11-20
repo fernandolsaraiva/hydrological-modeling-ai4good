@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'
 
 
 import pandas as pd
-from util import get_station_data_flu, get_station_data_plu, get_station_names_plu
+from util import get_station_data_flu, get_station_data_plu, get_station_names_plu, get_station_code
 
 # %%
 def load_pluviometric_data(start_time, end_time, station_names='all', aggregation='10-minute'):
@@ -16,7 +16,7 @@ def load_pluviometric_data(start_time, end_time, station_names='all', aggregatio
         station_names = get_station_names_plu()
     for station_name in station_names:
         station_data = get_station_data_plu(station_name, start_time, end_time, aggregation)
-        station_code = station_data['station'].iloc[0]
+        station_code = get_station_code(station_name)
         station_name = 'plu_' + str(station_code)
         station_data = station_data.drop(columns=['station'])
         station_data = station_data.rename(columns={'value': station_name})
@@ -30,7 +30,7 @@ def load_fluviometric_data(start_time, end_time, station_names=['Rio Tamanduate√
     df = pd.DataFrame()
     for station_name in station_names:
         station_data = get_station_data_flu(station_name, start_time, end_time, aggregation)
-        station_code = station_data['station'].iloc[0]
+        station_code = get_station_code(station_name)
         station_name = 'flu_' + str(station_code)
         station_data = station_data.drop(columns=['station'])
         station_data = station_data.rename(columns={'value': station_name})

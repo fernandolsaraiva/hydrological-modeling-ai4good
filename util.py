@@ -22,7 +22,7 @@ def get_station_data_flu(station_name, start_date, end_date, aggregation):
     df = df[['timestamp', 'value','station']]
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df = df.set_index('timestamp')
-    station_code = df['station'].iloc[0]
+    station_code = get_station_code(station_name)
     df = df.drop(columns=['station'])
     if aggregation == '10-minute':
         df = df.resample('10T').mean().reset_index()
@@ -51,7 +51,7 @@ def get_station_data_plu(station_name, start_date, end_date, aggregation = '10-m
     df = df[['timestamp', 'value','station']]
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df = df.set_index('timestamp')
-    station_code = df['station'].iloc[0]
+    station_code = get_station_code(station_name)
     df = df.drop(columns=['station'])
     if aggregation == '10-minute':
         df = df.resample('10min').mean().reset_index()
