@@ -70,3 +70,40 @@ def get_station_names_plu():
     df = pd.read_sql(query, conn)
     conn.close()
     return df['name'].tolist()
+
+# Função para conectar ao banco de dados e buscar os nomes das estações
+def get_station_names():
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    conn = psycopg2.connect(DATABASE_URL)
+    query = "SELECT * FROM station.station_flu"
+    df = pd.read_sql(query, conn)
+    conn.close()
+    return df['name'].tolist()
+
+def get_station_code(station_name):
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    conn = psycopg2.connect(DATABASE_URL)
+    query = f"""
+    SELECT st.original_id
+    FROM station.station_flu st
+    WHERE st.name = '{station_name}'
+    """
+    cursor = conn.cursor()
+    cursor.execute(query)
+    result = cursor.fetchone()
+    conn.close()
+    
+    if result:
+        return result[0]
+    else:
+        return None
+
+def get_last_available_date(station_code):
+        DATABASE_URL = os.getenv("DATABASE_URL")
+        conn = psycopg2.connect(DATABASE_URL)
+        cursor = conn.cursor()
+        cursor.execute(f"""SELECT MAX(timestamp) FROM timeseries.data_station_flu where station = '{station_code}'""")
+        last_data_date = cursor.fetchone()[0]
+        cursor.close()
+        conn.close()
+        return last_data_date

@@ -1,58 +1,48 @@
-import streamlit as st
+import os
+from datetime import datetime
+
 import pandas as pd
-import numpy as np
-import plotly.graph_objects as go
-from datetime import datetime, timedelta
+import plotly.express as px
+import pytz
+import streamlit as st
 from PIL import Image
 
+from util import (get_last_available_date, get_station_code,
+                  get_station_data_flu, get_station_names)
+
 # Configuração da página
-st.set_page_config(page_title="Flood Alert System - Station Graph", layout="wide")
+st.set_page_config(page_title="Flood Alert System", layout="wide")
 
-st.title("Station Graph")
-
-# Função para gerar dados fictícios de nível do rio
-def generate_mock_data():
-    now = datetime.now()
-    times_past = pd.date_range(now - timedelta(hours=10), now, freq='H')
-    times_future = pd.date_range(now, now + timedelta(hours=2), freq='H')
-    
-    # Dados passados (medidos)
-    measured_levels = np.sin(np.linspace(0, 3 * np.pi, len(times_past))) * 5 + 10
-    data_past = pd.DataFrame({"datetime": times_past, "measured": measured_levels})
-    
-    # Dados futuros (previsões)
-    predicted_levels = measured_levels[-1] + np.random.normal(0, 0.5, len(times_future)).cumsum()
-    data_future = pd.DataFrame({"datetime": times_future, "predicted": predicted_levels})
-    
-    return data_past, data_future
-
-# Verifica se uma estação foi selecionada
-if "selected_station" in st.session_state:
-    station = st.session_state["selected_station"]
-    st.subheader(f"River Level Time Series - {station['name']}")
-
-    # Gera dados fictícios
-    data_past, data_future = generate_mock_data()
-
-    # Gráfico de série temporal para o nível do rio
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=data_past["datetime"], y=data_past["measured"], mode='lines', name='Measured'))
-    fig.add_trace(go.Scatter(x=data_future["datetime"], y=data_future["predicted"], mode='lines', name='Predicted', line=dict(dash='dash')))
-    
-    fig.update_layout(
-        xaxis_title="Time",
-        yaxis_title="River Level (m)",
-        legend_title="Data Type",
-    )
-    
-    # Exibe o gráfico
-    st.plotly_chart(fig, use_container_width=True)
-
-else:
-    st.warning("No station selected. Go to the 'Map' tab and click on a station.")
 
 if __name__ == "__main__":
     logo = Image.open("img/logo_ifast.png")
     st.sidebar.image(logo, width=200)
     logo = Image.open("img/logo_ai4good.png")
     st.sidebar.image(logo, width=150)
+    st.title('Forecasting')
+
+    station_names = get_station_names()
+    default_station = 'Rio Tamanduateí - Mercado Municipal'
+    if default_station in station_names:
+        station_name = st.selectbox('Select the station', station_names, index=station_names.index(default_station))
+    else:
+        station_name = st.selectbox('Select the station', station_names)
+        
+
+    station_code = get_station_code(station_name)
+    
+    last_available_date = get_last_available_date(station_code)
+
+    end_time = last_available_date
+    # write start_time as end_time minus 2 days
+    start_time = end_time - pd.Timedelta(2, 'D')
+
+    # Button to plot the data
+    if st.button('Plot'):
+        data = get_station_data_flu(station_name, start_time, end_time, aggregation='10-minute')
+        data['timestamp'] = data['timestamp'].dt.tz_convert('America/Sao_Paulo')
+        fig = px.line(data, x='timestamp', y='value', title=f'River Level - {station_name}')
+        current_time = datetime.now(pytz.timezone('America/Sao_Paulo'))
+        fig.add_vline(x=current_time, line_width=3, line_dash="dash", line_color="red")
+        fig.add_annotation(x=current_time, y=max(data['value']), text="Current Time", showarrow=True, arrowhead=1)
+        st.plotly_chart(fig)
