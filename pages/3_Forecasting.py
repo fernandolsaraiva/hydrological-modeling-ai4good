@@ -47,12 +47,13 @@ if __name__ == "__main__":
         station_code = get_station_code_flu(station_name)
         last_available_date = get_last_available_date(station_code)
         end_time = last_available_date
-        start_time = end_time - pd.Timedelta(1, 'h')
+        start_time = end_time - pd.Timedelta(2, 'h')
         start_time_visualization = end_time - pd.Timedelta(2, 'D')
         df = load_data(start_time, end_time)
         st.write(df)
         df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_convert('America/Sao_Paulo')
-        df= df.sort_values(by='timestamp', ascending=False).head(6)
+        df= df.sort_values(by='timestamp', ascending=False).head(10)
+        df.set_index('timestamp', inplace=True)
         # torne a coluna timestamp de df o indice
         st.write(df)
         # Aplicar Time Delay Embedding

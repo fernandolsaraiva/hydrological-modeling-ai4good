@@ -32,6 +32,8 @@ if load_data_bool:
     df.to_csv('data/data_experimental.csv', index=False)
 #df = pd.read_csv('data/data_experimental.csv')
 df = pd.read_csv('scr/data/data_experimental.csv')
+df.set_index('timestamp', inplace=True)
+print(df.head(10))
 # %%
 # Aplicar Time Delay Embedding
 n_lags = 6
@@ -41,8 +43,10 @@ print(horizon)
 station_target = '413'
 target_variable = f'flu_{station_target}(t+{horizon})'
 max_nans = 3
-embedded_df = time_delay_embedding_df(df, n_lags, horizon, station_target=station_target)
-
+embedded_df = time_delay_embedding_df(df, n_lags, horizon, 
+station_target=station_target)
+embedded_df.sort_index(inplace=True)
+print(embedded_df)
 # Preprocessing steps
 embedded_df = delete_nan_target_rows(embedded_df, target_variable)
 embedded_df = remove_rows_with_nans(embedded_df, station_target, n_lags, max_nans)
