@@ -1,5 +1,6 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
+
 
 def time_delay_embedding(series: pd.Series, n_lags: int, horizon: int):
     """
@@ -18,9 +19,11 @@ def time_delay_embedding(series: pd.Series, n_lags: int, horizon: int):
         name = series.name
 
     n_lags_iter = list(range(n_lags, -horizon, -1))
-
+    print(f'n_lags_iter: {n_lags_iter}')
     X = [series.shift(i) for i in n_lags_iter]
     X = pd.concat(X, axis=1).dropna()
+    print(f'Concatenated DataFrame before dropna:\n{pd.concat([series.shift(i) for i in n_lags_iter], axis=1)}')
+    print(f'Concatenated DataFrame after dropna:\n{X}')
     X.columns = [f'{name}(t-{j - 1})'
                  if j > 0 else f'{name}(t+{np.abs(j) + 1})'
                  for j in n_lags_iter]
@@ -40,10 +43,15 @@ def time_delay_embedding_df(df: pd.DataFrame, n_lags: int, horizon: int, station
     
     for column in df.columns:
         if column != 'timestamp':
+            print('------column--------',column)
+            print('------df[column]-------',df[column])
             embedded_series = time_delay_embedding(df[column], n_lags, horizon)
+            print('----------embedded_series-----------',embedded_series)
             embedded_df = pd.concat([embedded_df, embedded_series], axis=1)
     
     # Add the timestamp column back
+    print('----df-----',df)
+    print('----embedded_df-----',embedded_df)
     embedded_df['timestamp'] = df['timestamp'].iloc[n_lags-1:len(df) - horizon].values
     
     # Remove all future columns except for the fluviometric variable with the specified horizon

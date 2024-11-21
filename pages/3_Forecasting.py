@@ -42,26 +42,27 @@ if __name__ == "__main__":
     else:
         station_name = st.selectbox('Select the station', station_names)
         
-    station_code = get_station_code_flu(station_name)
-    last_available_date = get_last_available_date(station_code)
-    end_time = last_available_date
-    start_time = end_time - pd.Timedelta(1, 'h')
-    start_time_visualization = end_time - pd.Timedelta(2, 'D')
     if st.button('Plot'):
         # Load data for prediction
+        station_code = get_station_code_flu(station_name)
+        last_available_date = get_last_available_date(station_code)
+        end_time = last_available_date
+        start_time = end_time - pd.Timedelta(1, 'h')
+        start_time_visualization = end_time - pd.Timedelta(2, 'D')
         df = load_data(start_time, end_time)
         st.write(df)
         df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_convert('America/Sao_Paulo')
         df= df.sort_values(by='timestamp', ascending=False).head(6)
+        # torne a coluna timestamp de df o indice
+        st.write(df)
         # Aplicar Time Delay Embedding
         n_lags = 6
-        horizon = 12
+        horizon = 0
         station_target = station_code
         target_variable = f'flu_{station_target}(t+{horizon})'
         max_nans = 3
         embedded_df = time_delay_embedding_df(df, n_lags, horizon, station_target=station_target)
-        print(time_delay_embedding_df)
-        
+        st.write(embedded_df)
 
         # Plotar
         data = get_station_data_flu(station_name, start_time_visualization, end_time, aggregation='10-minute')
