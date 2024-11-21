@@ -33,7 +33,6 @@ if load_data_bool:
 #df = pd.read_csv('data/data_experimental.csv')
 df = pd.read_csv('scr/data/data_experimental.csv')
 df.set_index('timestamp', inplace=True)
-print(df.head(30))
 # %%
 # Aplicar Time Delay Embedding
 n_lags = 6
@@ -46,11 +45,11 @@ max_nans = 3
 embedded_df = time_delay_embedding_df(df, n_lags, horizon, 
 station_target=station_target)
 embedded_df.sort_index(inplace=True)
-print(embedded_df)
 # Preprocessing steps
 embedded_df = delete_nan_target_rows(embedded_df, target_variable)
 embedded_df = remove_rows_with_nans(embedded_df, station_target, n_lags, max_nans)
 embedded_df = fill_missing_values_horizontal(embedded_df, 'plu_', n_lags)
+embedded_df = fill_missing_values_horizontal(embedded_df, 'flu_', n_lags)
 
 # Dividir os dados em conjuntos de treino, validação e teste
 X_train, X_val, X_test, y_train, y_val, y_test = split_train_val_test(embedded_df, target_variable)

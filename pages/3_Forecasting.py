@@ -64,6 +64,12 @@ if __name__ == "__main__":
         max_nans = 3
         embedded_df = time_delay_embedding_df(df, n_lags, horizon, station_target=station_target)
         st.write(embedded_df)
+        embedded_df = fill_missing_values_horizontal(embedded_df, 'plu_', n_lags)
+        embedded_df = fill_missing_values_horizontal(embedded_df, 'flu_', n_lags)
+
+        # Dividir os dados em conjuntos de treino, validação e teste
+        X_train, X_val, X_test, y_train, y_val, y_test = split_train_val_test(embedded_df, target_variable)
+
 
         # Plotar
         data = get_station_data_flu(station_name, start_time_visualization, end_time, aggregation='10-minute')
