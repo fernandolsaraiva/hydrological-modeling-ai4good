@@ -52,7 +52,7 @@ if __name__ == "__main__":
         df = load_data(start_time, end_time)
         st.write(df)
         df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_convert('America/Sao_Paulo')
-        df= df.sort_values(by='timestamp', ascending=False).head(10)
+        df= df.sort_values(by='timestamp', ascending=False).head(7)
         df.set_index('timestamp', inplace=True)
         # torne a coluna timestamp de df o indice
         st.write(df)

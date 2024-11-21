@@ -33,7 +33,7 @@ if load_data_bool:
 #df = pd.read_csv('data/data_experimental.csv')
 df = pd.read_csv('scr/data/data_experimental.csv')
 df.set_index('timestamp', inplace=True)
-print(df.head(10))
+print(df.head(30))
 # %%
 # Aplicar Time Delay Embedding
 n_lags = 6

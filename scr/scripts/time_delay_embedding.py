@@ -18,11 +18,11 @@ def time_delay_embedding(series: pd.Series, n_lags: int, horizon: int):
     else:
         name = series.name
 
-    n_lags_iter = list(range(n_lags, -horizon, -1))
+    n_lags_iter = list(range(n_lags, -horizon-1, -1))
     X = [series.shift(i) for i in n_lags_iter]
     X = pd.concat(X, axis=1).dropna()
-    X.columns = [f'{name}(t-{j - 1})'
-                 if j > 0 else f'{name}(t+{np.abs(j) + 1})'
+    X.columns = [f'{name}(t-{j})'
+                 if j >= 0 else f'{name}(t+{np.abs(j)})'
                  for j in n_lags_iter]
 
     return X
