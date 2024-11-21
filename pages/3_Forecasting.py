@@ -7,8 +7,9 @@ import pytz
 import streamlit as st
 from PIL import Image
 
+from scr.scripts.time_delay_embedding import time_delay_embedding_df
 from scr.scripts.utils import load_data
-from util import (get_last_available_date, get_station_code,
+from util import (get_last_available_date, get_station_code_flu,
                   get_station_data_flu, get_station_names)
 
 
@@ -41,19 +42,28 @@ if __name__ == "__main__":
     else:
         station_name = st.selectbox('Select the station', station_names)
         
-    station_code = get_station_code(station_name)
+    station_code = get_station_code_flu(station_name)
     last_available_date = get_last_available_date(station_code)
     end_time = last_available_date
-    # the start time is the end time minus 1 hour
     start_time = end_time - pd.Timedelta(1, 'h')
     start_time_visualization = end_time - pd.Timedelta(2, 'D')
-
-    df = load_data(start_time, end_time)
-    st.write(df)
-
-
-    # Button to plot the data
     if st.button('Plot'):
+        # Load data for prediction
+        df = load_data(start_time, end_time)
+        st.write(df)
+        df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_convert('America/Sao_Paulo')
+        df= df.sort_values(by='timestamp', ascending=False).head(6)
+        # Aplicar Time Delay Embedding
+        n_lags = 6
+        horizon = 12
+        station_target = station_code
+        target_variable = f'flu_{station_target}(t+{horizon})'
+        max_nans = 3
+        embedded_df = time_delay_embedding_df(df, n_lags, horizon, station_target=station_target)
+        print(time_delay_embedding_df)
+        
+
+        # Plotar
         data = get_station_data_flu(station_name, start_time_visualization, end_time, aggregation='10-minute')
         data['timestamp'] = data['timestamp'].dt.tz_convert('America/Sao_Paulo')
         
