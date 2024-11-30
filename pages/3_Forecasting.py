@@ -8,6 +8,7 @@ import streamlit as st
 from PIL import Image
 
 from scr.scripts.time_delay_embedding import time_delay_embedding_df
+from scr.scripts.preprocess import fill_missing_values_horizontal
 from scr.scripts.utils import load_data
 from util import (get_last_available_date, get_station_code_flu,
                   get_station_data_flu, get_station_names)
@@ -66,9 +67,9 @@ if __name__ == "__main__":
         st.write(embedded_df)
         embedded_df = fill_missing_values_horizontal(embedded_df, 'plu_', n_lags)
         embedded_df = fill_missing_values_horizontal(embedded_df, 'flu_', n_lags)
+        st.write(embedded_df)
 
-        # Dividir os dados em conjuntos de treino, validação e teste
-        X_train, X_val, X_test, y_train, y_val, y_test = split_train_val_test(embedded_df, target_variable)
+        
 
 
         # Plotar

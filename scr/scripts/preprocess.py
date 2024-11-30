@@ -12,7 +12,7 @@ def remove_rows_with_nans(df: pd.DataFrame, station_target: str, n_lags: int, ma
 def fill_missing_values_horizontal(df: pd.DataFrame, station_prefix: str, n_lags: int):
     station_columns = [col for col in df.columns if col.startswith(station_prefix)]
     for station in set(col.split('(')[0] for col in station_columns):
-        cols = [f'{station}(t-{i})' for i in range(n_lags)]
+        cols = [f'{station}(t-{i})' for i in range(n_lags+1)]
         df[cols] = df[cols].interpolate(method='linear', axis=1, limit_direction='both')
         df[cols] = df[cols].bfill(axis=1).ffill(axis=1)
         df[cols] = df[cols].fillna(0)

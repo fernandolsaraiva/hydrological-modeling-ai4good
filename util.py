@@ -93,7 +93,7 @@ def get_multiple_station_data_plu(station_names, start_date, end_date, aggregati
         print(f"Processando estação: {station_name}")
         station_code = station_codes[station_name]
         print(f"Código da estação: {station_code}")
-        station_data = df[df['name'] == station_name][['value']].rename(columns={'value': f'value_{station_code}'})
+        station_data = df[df['name'] == station_name][['value']].rename(columns={'value': f'plu_{station_code}'})
         
         if aggregation == '10-minute':
             station_data = station_data.resample('10min').mean()

@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import streamlit as st
 
 
 def time_delay_embedding(series: pd.Series, n_lags: int, horizon: int):
@@ -19,12 +20,11 @@ def time_delay_embedding(series: pd.Series, n_lags: int, horizon: int):
         name = series.name
 
     n_lags_iter = list(range(n_lags, -horizon-1, -1))
-    X = [series.shift(i) for i in n_lags_iter]
+    X = [series.shift(-i) for i in n_lags_iter]
     X = pd.concat(X, axis=1).dropna()
     X.columns = [f'{name}(t-{j})'
                  if j >= 0 else f'{name}(t+{np.abs(j)})'
                  for j in n_lags_iter]
-
     return X
 
 def time_delay_embedding_df(df: pd.DataFrame, n_lags: int, horizon: int, station_target: str):
