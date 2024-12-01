@@ -3,7 +3,9 @@ from datetime import timedelta
 
 import numpy as np
 import pandas as pd
+import plotly.express as px
 import plotly.graph_objects as go
+import shap
 import streamlit as st
 import xgboost as xgb
 from PIL import Image
@@ -99,4 +101,31 @@ if __name__ == "__main__":
         st.write(f'RMSE: {rmse}')
 
         plot_predictions(y_test_filtered, y_pred_filtered, adjusted_timestamps_filtered)
-              
+
+        # Shap value analysis
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer.shap_values(d_test)
+
+        # Convert SHAP values to a DataFrame
+        shap_values_df = pd.DataFrame(shap_values, columns=X_test.columns)
+
+        # Add the feature values to the DataFrame
+        for col in X_test.columns:
+            shap_values_df[col + '_value'] = X_test[col].values
+
+        # Melt the DataFrame to long format
+        shap_values_long = shap_values_df.melt(id_vars=[col + '_value' for col in X_test.columns], 
+                                            var_name='Feature', value_name='SHAP Value')
+
+        # Extract the feature name and value
+        shap_values_long['Feature'] = shap_values_long['Feature'].str.replace('_value', '')
+        shap_values_long['Feature Value'] = shap_values_long.apply(lambda row: row[row['Feature'] + '_value'], axis=1)
+
+        # Create a beeswarm plot using Plotly
+        fig = px.scatter(shap_values_long, x='SHAP Value', y='Feature', color='Feature Value',
+                        color_continuous_scale='RdBu', title='SHAP Beeswarm Plot')
+
+        # Display the plot in Streamlit
+        st.plotly_chart(fig)
+            
+                

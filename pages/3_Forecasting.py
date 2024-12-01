@@ -1,9 +1,11 @@
 import os
 from datetime import datetime
 
+import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.express as px
 import pytz
+import shap
 import streamlit as st
 import xgboost as xgb
 from PIL import Image
@@ -57,8 +59,8 @@ if __name__ == "__main__":
     # Add options for the user
     option = st.selectbox("Choose the prediction option:", ("Prediction for the current moment", "Choose date/time in the past"))
     # Adicionar um seletor para o usuário escolher o modelo
-    model_options = [f"Model {i+1}" for i in range(12)]
-    selected_model = st.selectbox("Select a model for Explainability analysis", model_options)
+    model_options = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    selected_horizon = st.selectbox("Select a model for Explainability analysis", model_options, index=5)
 
     if option == "Choose date/time in the past":
         selected_date = st.date_input("Choose the date", value=pd.to_datetime('today').date())
@@ -111,6 +113,9 @@ if __name__ == "__main__":
             dmatrix = xgb.DMatrix(embedded_df)
             prediction = model.predict(dmatrix)
             predictions.append(prediction[0])
+            if horizon == selected_horizon:
+                selected_model = model
+                
 
         # Adicionar as predições ao dataframe original
         prediction_timestamps = [end_time + pd.Timedelta(minutes=10 * i) for i in range(1, 13)]
@@ -122,5 +127,20 @@ if __name__ == "__main__":
 
         fig1 = plot_river_level(data, station_name,last_available_date=last_available_date, prediction_data=prediction_df, option = option)
         st.plotly_chart(fig1)
+
+        # Shap value analysis
+        explainer = shap.TreeExplainer(selected_model)
+        shap_values = explainer.shap_values(dmatrix)
+        shap.initjs()
+        # Criar uma figura e um eixo
+        fig, ax = plt.subplots()
+
+        # Gerar o gráfico de waterfall
+        shap.waterfall_plot(shap.Explanation(values=shap_values[0], base_values=explainer.expected_value, data=embedded_df.iloc[0]))
+
+        # Mostrar o gráfico no Streamlit
+        plt.tight_layout()
+        st.pyplot(fig, bbox_inches='tight')
+        plt.clf()
 
         

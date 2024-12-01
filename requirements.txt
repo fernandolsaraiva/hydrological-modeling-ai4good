@@ -9,3 +9,4 @@ black
 scikit-learn
 xgboost==1.7.3
 shap
+matplotlib
