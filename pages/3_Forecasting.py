@@ -34,7 +34,7 @@ def plot_river_level(data, station_name, last_available_date, prediction_data=No
     fig.add_vline(x=current_time, line_width=3, line_dash="dash", line_color="red")
     fig.add_annotation(x=current_time, y=max(data['value']), text="Current Time", showarrow=True, arrowhead=1)
     fig.update_yaxes(title_text='River Level (m)')
-    st.plotly_chart(fig)
+    return fig
 
 # Configuração da página
 st.set_page_config(page_title="Flood Alert System", layout="wide")
@@ -55,7 +55,10 @@ if __name__ == "__main__":
         station_name = st.selectbox('Select the station', station_names)
     
     # Add options for the user
-    option = st.radio("Choose the prediction option:", ("Prediction for the current moment", "Choose date/time in the past"))
+    option = st.selectbox("Choose the prediction option:", ("Prediction for the current moment", "Choose date/time in the past"))
+    # Adicionar um seletor para o usuário escolher o modelo
+    model_options = [f"Model {i+1}" for i in range(12)]
+    selected_model = st.selectbox("Select a model for Explainability analysis", model_options)
 
     if option == "Choose date/time in the past":
         selected_date = st.date_input("Choose the date", value=pd.to_datetime('today').date())
@@ -74,6 +77,7 @@ if __name__ == "__main__":
         st.write("Formatted datetime:", formatted_datetime)
 
     if st.button('Plot'):
+        plot_container = st.empty()
         # Load data for prediction
         station_code = get_station_code_flu(station_name)
         if option == "Prediction for the current moment":
@@ -116,4 +120,7 @@ if __name__ == "__main__":
         data = get_station_data_flu(station_name, start_time_visualization, end_time, aggregation='10-minute')
         data['timestamp'] = data['timestamp'].dt.tz_convert('America/Sao_Paulo')
 
-        plot_river_level(data, station_name,last_available_date=last_available_date, prediction_data=prediction_df, option = option)
+        fig1 = plot_river_level(data, station_name,last_available_date=last_available_date, prediction_data=prediction_df, option = option)
+        st.plotly_chart(fig1)
+
+        
