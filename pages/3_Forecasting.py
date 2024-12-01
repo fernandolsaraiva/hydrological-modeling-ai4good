@@ -135,8 +135,7 @@ if __name__ == "__main__":
         shap.initjs()
         # Criar uma figura e um eixo
         fig, ax = plt.subplots(figsize=(8, 6))
-        #shap.waterfall_plot(shap.Explanation(values=shap_values[0], base_values=explainer.expected_value, data=embedded_df.iloc[0]))
-        shap.waterfall_plot(shap.Explanation(values=shap_values[0], base_values=explainer.expected_value), max_display=10)
+        shap.waterfall_plot(shap.Explanation(values=shap_values[0], base_values=explainer.expected_value, data=embedded_df.iloc[0]))
         plt.tight_layout()
         st.pyplot(fig, bbox_inches='tight')
         plt.clf()
