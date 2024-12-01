@@ -10,7 +10,6 @@ import streamlit as st
 import xgboost as xgb
 from PIL import Image
 from sklearn.metrics import mean_squared_error
-import streamlit_shap
 
 from src.scripts.database import load_model_from_db
 from src.scripts.preprocess import fill_missing_values_horizontal

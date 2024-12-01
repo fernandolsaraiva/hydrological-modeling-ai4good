@@ -9,6 +9,7 @@ import shap
 import streamlit as st
 import xgboost as xgb
 from PIL import Image
+from streamlit_shap import st_shap
 
 from src.scripts.database import load_all_models_from_db
 from src.scripts.preprocess import fill_missing_values_horizontal
@@ -133,12 +134,9 @@ if __name__ == "__main__":
         shap_values = explainer.shap_values(dmatrix)
         shap.initjs()
         # Criar uma figura e um eixo
-        fig, ax = plt.subplots()
-
-        # Gerar o gráfico de waterfall
-        shap.waterfall_plot(shap.Explanation(values=shap_values[0], base_values=explainer.expected_value, data=embedded_df.iloc[0]))
-
-        # Mostrar o gráfico no Streamlit
+        fig, ax = plt.subplots(figsize=(8, 6))
+        #shap.waterfall_plot(shap.Explanation(values=shap_values[0], base_values=explainer.expected_value, data=embedded_df.iloc[0]))
+        shap.waterfall_plot(shap.Explanation(values=shap_values[0], base_values=explainer.expected_value), max_display=10)
         plt.tight_layout()
         st.pyplot(fig, bbox_inches='tight')
         plt.clf()
