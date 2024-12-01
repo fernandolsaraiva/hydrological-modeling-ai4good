@@ -31,7 +31,7 @@ if load_data_bool:
     df = load_data(start_time, end_time, station_name_flu)
     df.to_csv('data/data_experimental.csv', index=False)
 #df = pd.read_csv('data/data_experimental.csv')
-df = pd.read_csv('scr/data/data_experimental.csv')
+df = pd.read_csv('src/data/data_experimental.csv')
 df.set_index('timestamp', inplace=True)
 # %%
 # Aplicar Time Delay Embedding

@@ -8,14 +8,16 @@ import streamlit as st
 import xgboost as xgb
 from PIL import Image
 
-from scr.scripts.database import load_all_models_from_db
-from scr.scripts.preprocess import fill_missing_values_horizontal
-from scr.scripts.time_delay_embedding import time_delay_embedding_df
-from scr.scripts.utils import load_data
+from src.scripts.database import load_all_models_from_db
+from src.scripts.preprocess import fill_missing_values_horizontal
+from src.scripts.time_delay_embedding import time_delay_embedding_df
+from src.scripts.utils import load_data
 from util import (get_last_available_date, get_station_code_flu,
                   get_station_data_flu, get_station_names)
 
-def plot_river_level(data, station_name, prediction_data=None):
+sao_paulo_tz = pytz.timezone('America/Sao_Paulo')
+
+def plot_river_level(data, station_name, last_available_date, prediction_data=None, option = "Prediction for the current moment"):
     data['value'] = data['value'] / 100
     fig = px.line(data, x='timestamp', y='value', title=f'River Level - {station_name}')
     fig.add_scatter(x=data['timestamp'], y=data['value'], mode='lines+markers', marker=dict(color='blue', size=5), name='Observed')
@@ -25,7 +27,10 @@ def plot_river_level(data, station_name, prediction_data=None):
         fig.add_scatter(x=prediction_data['timestamp'], y=prediction_data['prediction'], mode='lines+markers', marker=dict(color='orange', size=5), name='Predicted')
     
     fig.update_layout(title={'text': f'River Level - {station_name}', 'x': 0.5, 'xanchor': 'center'})
-    current_time = datetime.now(pytz.timezone('America/Sao_Paulo'))
+    if option == "Prediction for the current moment":
+        current_time = datetime.now(pytz.timezone('America/Sao_Paulo'))
+    else:
+        current_time = last_available_date.astimezone(pytz.timezone('America/Sao_Paulo'))
     fig.add_vline(x=current_time, line_width=3, line_dash="dash", line_color="red")
     fig.add_annotation(x=current_time, y=max(data['value']), text="Current Time", showarrow=True, arrowhead=1)
     fig.update_yaxes(title_text='River Level (m)')
@@ -49,15 +54,36 @@ if __name__ == "__main__":
     else:
         station_name = st.selectbox('Select the station', station_names)
     
-    
+    # Add options for the user
+    option = st.radio("Choose the prediction option:", ("Prediction for the current moment", "Choose date/time in the past"))
+
+    if option == "Choose date/time in the past":
+        selected_date = st.date_input("Choose the date", value=pd.to_datetime('today').date())
+        
+        if 'selected_time' not in st.session_state:
+            st.session_state.selected_time = pd.to_datetime('now').time()
+        
+        selected_time = st.time_input("Choose the time", value=st.session_state.selected_time)
+        st.session_state.selected_time = selected_time
+
+        selected_datetime = datetime.combine(selected_date, selected_time)
+        localized_datetime = sao_paulo_tz.localize(selected_datetime)
+        utc_datetime = localized_datetime.astimezone(pytz.utc)
+        # Formate o datetime em UTC
+        formatted_datetime = utc_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] + ' +0000'
+        st.write("Formatted datetime:", formatted_datetime)
 
     if st.button('Plot'):
         # Load data for prediction
         station_code = get_station_code_flu(station_name)
-        last_available_date = get_last_available_date(station_code)
+        if option == "Prediction for the current moment":
+            last_available_date = get_last_available_date(station_code)
+        else:
+            last_available_date = formatted_datetime
+            last_available_date = pd.to_datetime(last_available_date)
         end_time = last_available_date
         start_time = end_time - pd.Timedelta(2, 'h')
-        start_time_visualization = end_time - pd.Timedelta(2, 'D')
+        start_time_visualization = end_time - pd.Timedelta(1, 'D')
         df = load_data(start_time, end_time)
         df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_convert('America/Sao_Paulo')
         df= df.sort_values(by='timestamp', ascending=False).head(7)
@@ -90,4 +116,4 @@ if __name__ == "__main__":
         data = get_station_data_flu(station_name, start_time_visualization, end_time, aggregation='10-minute')
         data['timestamp'] = data['timestamp'].dt.tz_convert('America/Sao_Paulo')
 
-        plot_river_level(data, station_name, prediction_data=prediction_df)
+        plot_river_level(data, station_name,last_available_date=last_available_date, prediction_data=prediction_df, option = option)
