@@ -10,12 +10,14 @@ import streamlit as st
 import xgboost as xgb
 from PIL import Image
 from sklearn.metrics import mean_squared_error
+import streamlit_shap
 
 from src.scripts.database import load_model_from_db
 from src.scripts.preprocess import fill_missing_values_horizontal
 from src.scripts.time_delay_embedding import time_delay_embedding_df
 from src.scripts.utils import load_data
 from util import get_station_code_flu, get_station_names
+import matplotlib.pyplot as plt
 
 
 def plot_predictions(y_test, y_pred, timestamps):
@@ -106,26 +108,19 @@ if __name__ == "__main__":
         explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(d_test)
 
-        # Convert SHAP values to a DataFrame
-        shap_values_df = pd.DataFrame(shap_values, columns=X_test.columns)
+        shap.initjs()
+        fig, ax = plt.subplots()
+        shap.summary_plot(shap_values, X_test, plot_type="bar")
+        plt.tight_layout()
+        fig.savefig("shap_summary_plot.png", bbox_inches='tight')
+        st.image("shap_summary_plot.png")
+        plt.clf()
 
-        # Add the feature values to the DataFrame
-        for col in X_test.columns:
-            shap_values_df[col + '_value'] = X_test[col].values
 
-        # Melt the DataFrame to long format
-        shap_values_long = shap_values_df.melt(id_vars=[col + '_value' for col in X_test.columns], 
-                                            var_name='Feature', value_name='SHAP Value')
-
-        # Extract the feature name and value
-        shap_values_long['Feature'] = shap_values_long['Feature'].str.replace('_value', '')
-        shap_values_long['Feature Value'] = shap_values_long.apply(lambda row: row[row['Feature'] + '_value'], axis=1)
-
-        # Create a beeswarm plot using Plotly
-        fig = px.scatter(shap_values_long, x='SHAP Value', y='Feature', color='Feature Value',
-                        color_continuous_scale='RdBu', title='SHAP Beeswarm Plot')
-
-        # Display the plot in Streamlit
-        st.plotly_chart(fig)
-            
-                
+        # with st.spinner("Generating SHAP summary plot..."):
+        #     shap.initjs()
+        #     fig, ax = plt.subplots()
+        #     shap.summary_plot(shap_values, X_test, plot_type="beeswarm", show=False)
+        #     plt.tight_layout()
+        #     streamlit_shap.st_shap(fig)
+        #     plt.clf()
