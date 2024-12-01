@@ -5,7 +5,7 @@ import os
 import numpy as np
 import pandas as pd
 import xgboost as xgb
-from scripts.database import load_model_from_db, save_model_to_db
+from scripts.database import save_model_to_db
 from scripts.preprocess import (delete_nan_target_rows,
                                 fill_missing_values_horizontal,
                                 remove_rows_with_nans)
@@ -37,8 +37,6 @@ df.set_index('timestamp', inplace=True)
 # Aplicar Time Delay Embedding
 n_lags = 6
 horizon = args.horizon
-print(horizon)
-#horizon = 12
 station_target = '413'
 target_variable = f'flu_{station_target}(t+{horizon})'
 max_nans = 3
@@ -76,9 +74,4 @@ print(f'RMSE: {rmse}')
 # Salvar o modelo no banco de dados
 DATABASE_URL = os.getenv("DATABASE_URL")
 save_model_to_db(model, station_target, horizon, params, period, rmse, DATABASE_URL)
-# %%
-# Carregar o modelo do banco de dados e fazer previsões
-# model, parameters, period, rmse = load_model_from_db(station_target, horizon, DATABASE_URL)
-# y_pred = predict_xgboost(model, X_test)
-# print(f'RMSE: {rmse}')
-# %%
+
