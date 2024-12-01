@@ -1,6 +1,7 @@
 # %%
 import os
 import sys
+import streamlit as st
 
 # Adiciona o diretório pai ao sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))

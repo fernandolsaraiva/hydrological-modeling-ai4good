@@ -1,7 +1,9 @@
 import json
-import psycopg2
 import os
+
+import psycopg2
 import xgboost as xgb
+
 
 def save_model_to_db(model, station, horizon, params, period, rmse, db_url):
     temp_model_file = 'temp_model.xgb'
@@ -37,3 +39,31 @@ def load_model_from_db(station, horizon, db_url):
     cursor.close()
     conn.close()
     return model, parameters, period, rmse
+
+def load_all_models_from_db(station_code, DATABASE_URL):
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute("SELECT horizon, model, parameters, period, rmse FROM prediction.model WHERE station = %s", (station_code,))
+    results = cursor.fetchall()
+    
+    models = []
+    for result in results:
+        horizon = result[0]
+        model_binary = result[1]
+        parameters = result[2] if isinstance(result[2], dict) else json.loads(result[2])
+        period = result[3]
+        rmse = result[4] if isinstance(result[4], dict) else json.loads(result[4])
+        
+        temp_model_file = f'temp_model_{horizon}.xgb'
+        with open(temp_model_file, 'wb') as file:
+            file.write(model_binary)
+        
+        model = xgb.Booster()
+        model.load_model(temp_model_file)
+        os.remove(temp_model_file)
+        
+        models.append((horizon, model, parameters, period, rmse))
+    
+    cursor.close()
+    conn.close()
+    return models

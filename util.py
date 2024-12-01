@@ -2,6 +2,7 @@ import os
 
 import pandas as pd
 import psycopg2
+import streamlit as st
 
 
 # Função para buscar os dados da estação selecionada
@@ -89,7 +90,8 @@ def get_multiple_station_data_plu(station_names, start_date, end_date, aggregati
     
     station_codes = get_station_codes_plu(station_names)
 
-    for station_name in station_names:
+    #for station_name in station_names:
+    for station_name in df['name'].unique():
         print(f"Processando estação: {station_name}")
         station_code = station_codes[station_name]
         print(f"Código da estação: {station_code}")
@@ -107,6 +109,13 @@ def get_multiple_station_data_plu(station_names, start_date, end_date, aggregati
         else:
             merged_df = pd.merge(merged_df, station_data, left_index=True, right_index=True, how='outer')
     
+    # Verificar se há nomes de estações faltando
+    for station_name in station_names:
+        station_code = station_codes[station_name]
+        column_name = f'plu_{station_code}'
+        if column_name not in merged_df.columns:
+            merged_df[column_name] = 0
+
     merged_df = merged_df.reset_index()
     return merged_df
 
@@ -194,3 +203,23 @@ def get_last_available_date(station_code):
         cursor.close()
         conn.close()
         return last_data_date
+
+def load_model_from_db(horizon):
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    
+    # Query to get the model for the given horizon
+    cursor.execute("SELECT model_data FROM prediction_model WHERE horizon = %s", (horizon,))
+    model_data = cursor.fetchone()
+    
+    # Close the connection
+    conn.close()
+    
+    if model_data is None:
+        raise ValueError(f"No model found for horizon {horizon}")
+    
+    # Load the model from binary data
+    model = pickle.loads(model_data[0])
+    
+    return model

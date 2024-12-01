@@ -1,4 +1,6 @@
 import pandas as pd
+import streamlit as st
+
 
 def delete_nan_target_rows(df, target_variable):
     df = df.dropna(subset=[target_variable])

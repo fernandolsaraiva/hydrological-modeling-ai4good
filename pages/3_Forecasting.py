@@ -5,19 +5,25 @@ import pandas as pd
 import plotly.express as px
 import pytz
 import streamlit as st
+import xgboost as xgb
 from PIL import Image
 
-from scr.scripts.time_delay_embedding import time_delay_embedding_df
+from scr.scripts.database import load_all_models_from_db
 from scr.scripts.preprocess import fill_missing_values_horizontal
+from scr.scripts.time_delay_embedding import time_delay_embedding_df
 from scr.scripts.utils import load_data
 from util import (get_last_available_date, get_station_code_flu,
                   get_station_data_flu, get_station_names)
 
-
-def plot_river_level(data, station_name):
+def plot_river_level(data, station_name, prediction_data=None):
     data['value'] = data['value'] / 100
     fig = px.line(data, x='timestamp', y='value', title=f'River Level - {station_name}')
-    fig.add_scatter(x=data['timestamp'], y=data['value'], mode='markers', marker=dict(color='blue', size=5))
+    fig.add_scatter(x=data['timestamp'], y=data['value'], mode='lines+markers', marker=dict(color='blue', size=5), name='Observed')
+    
+    if prediction_data is not None:
+        prediction_data['prediction'] = prediction_data['prediction'] / 100
+        fig.add_scatter(x=prediction_data['timestamp'], y=prediction_data['prediction'], mode='lines+markers', marker=dict(color='orange', size=5), name='Predicted')
+    
     fig.update_layout(title={'text': f'River Level - {station_name}', 'x': 0.5, 'xanchor': 'center'})
     current_time = datetime.now(pytz.timezone('America/Sao_Paulo'))
     fig.add_vline(x=current_time, line_width=3, line_dash="dash", line_color="red")
@@ -42,7 +48,9 @@ if __name__ == "__main__":
         station_name = st.selectbox('Select the station', station_names, index=station_names.index(default_station))
     else:
         station_name = st.selectbox('Select the station', station_names)
-        
+    
+    
+
     if st.button('Plot'):
         # Load data for prediction
         station_code = get_station_code_flu(station_name)
@@ -51,12 +59,9 @@ if __name__ == "__main__":
         start_time = end_time - pd.Timedelta(2, 'h')
         start_time_visualization = end_time - pd.Timedelta(2, 'D')
         df = load_data(start_time, end_time)
-        st.write(df)
         df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_convert('America/Sao_Paulo')
         df= df.sort_values(by='timestamp', ascending=False).head(7)
         df.set_index('timestamp', inplace=True)
-        # torne a coluna timestamp de df o indice
-        st.write(df)
         # Aplicar Time Delay Embedding
         n_lags = 6
         horizon = 0
@@ -64,16 +69,25 @@ if __name__ == "__main__":
         target_variable = f'flu_{station_target}(t+{horizon})'
         max_nans = 3
         embedded_df = time_delay_embedding_df(df, n_lags, horizon, station_target=station_target)
-        st.write(embedded_df)
         embedded_df = fill_missing_values_horizontal(embedded_df, 'plu_', n_lags)
         embedded_df = fill_missing_values_horizontal(embedded_df, 'flu_', n_lags)
-        st.write(embedded_df)
-
+        # Carregar todos os modelos do banco de dados de uma vez
+        DATABASE_URL = os.getenv("DATABASE_URL")
+        models_data = load_all_models_from_db(station_code, DATABASE_URL)
         
+        # Fazer as predições
+        predictions = []
+        for horizon, model, parameters, period, rmse in models_data:
+            dmatrix = xgb.DMatrix(embedded_df)
+            prediction = model.predict(dmatrix)
+            predictions.append(prediction[0])
 
-
+        # Adicionar as predições ao dataframe original
+        prediction_timestamps = [end_time + pd.Timedelta(minutes=10 * i) for i in range(1, 13)]
+        prediction_df = pd.DataFrame({'timestamp': prediction_timestamps, 'prediction': predictions})
+        prediction_df['timestamp'] = prediction_df['timestamp'].dt.tz_convert('America/Sao_Paulo')
         # Plotar
         data = get_station_data_flu(station_name, start_time_visualization, end_time, aggregation='10-minute')
         data['timestamp'] = data['timestamp'].dt.tz_convert('America/Sao_Paulo')
-        
-        plot_river_level(data, station_name)
+
+        plot_river_level(data, station_name, prediction_data=prediction_df)
