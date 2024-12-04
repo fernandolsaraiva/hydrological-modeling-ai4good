@@ -1,10 +1,12 @@
 import os
 from datetime import timedelta
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import pytz
 import shap
 import streamlit as st
 import xgboost as xgb
@@ -16,21 +18,23 @@ from src.scripts.preprocess import fill_missing_values_horizontal
 from src.scripts.time_delay_embedding import time_delay_embedding_df
 from src.scripts.utils import load_data
 from util import get_station_code_flu, get_station_names
-import matplotlib.pyplot as plt
 
 
 def plot_predictions(y_test, y_pred, timestamps):
+    y_test_m = [value / 100 for value in y_test]
+    y_pred_m = [value / 100 for value in y_pred]
+
     fig = go.Figure()
 
     # Add actual values line
-    fig.add_trace(go.Scatter(x=timestamps, y=y_test, mode='lines+markers', name='Actual Values', line=dict(color='blue')))
+    fig.add_trace(go.Scatter(x=timestamps, y=y_test_m, mode='lines+markers', name='Actual Values', line=dict(color='blue')))
 
-    fig.add_trace(go.Scatter(x=timestamps, y=y_pred, mode='lines+markers', name='Predicted Values', line=dict(color='orange')))
+    fig.add_trace(go.Scatter(x=timestamps, y=y_pred_m, mode='lines+markers', name='Predicted Values', line=dict(color='orange')))
 
     fig.update_layout(
         title='Comparison between Actual and Predicted Values',
         xaxis_title='Timestamp',
-        yaxis_title='Values',
+        yaxis_title='River level (m)',
         legend=dict(x=0, y=1),
         margin=dict(l=0, r=0, t=30, b=0)
     )
@@ -87,9 +91,8 @@ if __name__ == "__main__":
         y_test = embedded_df[target_variable]
         d_test = xgb.DMatrix(X_test)
         y_pred = model.predict(d_test)
-        adjusted_timestamps = X_test.index - pd.to_timedelta(horizon * 10, unit='m')
-
-        # Remover valores NaN de y_test e y_pred
+        sao_paulo_tz = pytz.timezone('America/Sao_Paulo')
+        adjusted_timestamps = (X_test.index + pd.to_timedelta(horizon * 10, unit='m')).tz_convert(sao_paulo_tz)
         mask = ~np.isnan(y_test) & ~np.isnan(y_pred)
         y_test_filtered = y_test[mask]
         y_pred_filtered = y_pred[mask]
