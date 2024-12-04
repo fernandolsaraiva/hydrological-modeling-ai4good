@@ -25,10 +25,8 @@ def plot_predictions(y_test, y_pred, timestamps):
     # Add actual values line
     fig.add_trace(go.Scatter(x=timestamps, y=y_test, mode='lines+markers', name='Actual Values', line=dict(color='blue')))
 
-    # Add predicted values line
     fig.add_trace(go.Scatter(x=timestamps, y=y_pred, mode='lines+markers', name='Predicted Values', line=dict(color='orange')))
 
-    # Configure layout of the plot
     fig.update_layout(
         title='Comparison between Actual and Predicted Values',
         xaxis_title='Timestamp',
@@ -36,8 +34,6 @@ def plot_predictions(y_test, y_pred, timestamps):
         legend=dict(x=0, y=1),
         margin=dict(l=0, r=0, t=30, b=0)
     )
-
-    # Display the plot using Streamlit
     st.plotly_chart(fig)
 
 if __name__ == "__main__":
@@ -63,7 +59,7 @@ if __name__ == "__main__":
         end_time = st.date_input("Choose the end date", value=pd.to_datetime('today').date())
 
     start_time = pd.to_datetime(start_time)
-    end_time = pd.to_datetime(end_time)
+    end_time = pd.to_datetime(end_time)+timedelta(days=1)
     horizon = st.selectbox('Choose the horizon', list(range(1, 13)), index=5)
 
     if st.button('Plot'):

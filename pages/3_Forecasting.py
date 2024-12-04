@@ -77,7 +77,6 @@ if __name__ == "__main__":
         utc_datetime = localized_datetime.astimezone(pytz.utc)
         # Formate o datetime em UTC
         formatted_datetime = utc_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] + ' +0000'
-        st.write("Formatted datetime:", formatted_datetime)
 
     if st.button('Plot'):
         plot_container = st.empty()
