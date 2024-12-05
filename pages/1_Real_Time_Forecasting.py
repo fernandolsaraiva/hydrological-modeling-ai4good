@@ -1,6 +1,9 @@
 import os
 from datetime import datetime
 
+import matplotlib
+
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.express as px
@@ -92,8 +95,9 @@ if __name__ == "__main__":
     # Add options for the user
     option = st.selectbox("Choose the prediction option:", ("Prediction for the current moment", "Choose date/time in the past"))
     # Adicionar um seletor para o usuário escolher o modelo
-    model_options = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-    selected_horizon = st.selectbox("Select a model for Explainability analysis", model_options, index=5)
+    model_options = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120]
+    selected_horizon = st.selectbox("Select a horizon (minutes) for Explainability analysis", model_options, index=3)
+    selected_horizon = selected_horizon/10
 
     if option == "Choose date/time in the past":
         selected_date = st.date_input("Choose the date", value=pd.to_datetime('today').date())
@@ -160,15 +164,20 @@ if __name__ == "__main__":
         fig1 = plot_river_level(data, station_name,last_available_date=last_available_date, critical_levels=selected_critical_level,prediction_data=prediction_df, option = option)
         st.plotly_chart(fig1)
 
+        st.header("Explainability Analysis")
+
         # Shap value analysis
         explainer = shap.TreeExplainer(selected_model)
         shap_values = explainer.shap_values(dmatrix)
         shap.initjs()
-        # Criar uma figura e um eixo
-        fig, ax = plt.subplots(figsize=(8, 6))
-        shap.waterfall_plot(shap.Explanation(values=shap_values[0], base_values=explainer.expected_value, data=embedded_df.iloc[0]))
-        plt.tight_layout()
-        st.pyplot(fig, bbox_inches='tight')
-        plt.clf()
+        shap.waterfall_plot(
+            shap.Explanation(
+                values=shap_values[0], 
+                base_values=explainer.expected_value, 
+                data=embedded_df.iloc[0]
+            ),
+            show = False, max_display=10
+        )
+        st.pyplot(plt.gcf())
 
         

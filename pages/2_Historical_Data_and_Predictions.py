@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
     start_time = pd.to_datetime(start_time)
     end_time = pd.to_datetime(end_time)+timedelta(days=1)
-    horizon = st.selectbox('Choose the horizon', list(range(1, 13)), index=5)
+    horizon = st.selectbox('Choose the horizon', list(range(1, 13)), index=3)
 
     if st.button('Plot'):
         station_code = get_station_code_flu(station_name)
