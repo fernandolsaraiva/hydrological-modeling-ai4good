@@ -30,9 +30,24 @@ def plot_river_level(data, station_name, last_available_date,critical_levels, pr
     
     if prediction_data is not None:
         prediction_data['prediction'] = prediction_data['prediction'] / 100
+        prediction_data['upper_bound'] = prediction_data['upper_bound'] / 100
+        prediction_data['lower_bound'] = prediction_data['lower_bound'] / 100
+
         fig.add_scatter(x=prediction_data['timestamp'], y=prediction_data['prediction'], mode='lines+markers', marker=dict(color='orange', size=5), name='Predicted')
+
+        # Adicionar região de incerteza
+        fig.add_scatter(
+            x=prediction_data['timestamp'].tolist() + prediction_data['timestamp'].tolist()[::-1],
+            y=prediction_data['upper_bound'].tolist() + prediction_data['lower_bound'].tolist()[::-1],
+            fill='toself',
+            fillcolor='rgba(0,100,80,0.2)',
+            line=dict(color='rgba(255,255,255,0)'),
+            hoverinfo="skip",
+            showlegend=True,
+            name='Uncertainty'
+        )
     
-    fig.update_layout(title={'text': f'River Level - {station_name}', 'x': 0.5, 'xanchor': 'center'},height=600)
+    fig.update_layout(title={'text': f'River Level - {station_name}', 'x': 0.5, 'xanchor': 'center','font': {'size': 20}},height=600)
     if option == "Prediction for the current moment":
         current_time = datetime.now(pytz.timezone('America/Sao_Paulo'))
     else:
@@ -145,17 +160,23 @@ if __name__ == "__main__":
         
         # Fazer as predições
         predictions = []
+        upper_bounds = []
+        lower_bounds = []
         for horizon, model, parameters, period, rmse in models_data:
             dmatrix = xgb.DMatrix(embedded_df)
             prediction = model.predict(dmatrix)
             predictions.append(prediction[0])
+            upper_bounds.append(prediction[0] + 1.96 * rmse['test'])
+            lower_bounds.append(prediction[0] - 1.96 * rmse['test'])
+
             if horizon == selected_horizon:
                 selected_model = model
                 
 
         # Adicionar as predições ao dataframe original
         prediction_timestamps = [end_time + pd.Timedelta(minutes=10 * i) for i in range(1, 13)]
-        prediction_df = pd.DataFrame({'timestamp': prediction_timestamps, 'prediction': predictions})
+        prediction_df = pd.DataFrame({'timestamp': prediction_timestamps, 'prediction': predictions,'upper_bound': upper_bounds,
+        'lower_bound': lower_bounds})
         prediction_df['timestamp'] = prediction_df['timestamp'].dt.tz_convert('America/Sao_Paulo')
         # Plotar
         data = get_station_data_flu(station_name, start_time_visualization, end_time, aggregation='10-minute')
