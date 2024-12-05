@@ -115,7 +115,6 @@ if __name__ == "__main__":
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
 
-    # Atualizar os dados no banco
     for station_name, critical_levels in data.items():
         print('Inserting critical levels for', station_name)
         cursor.execute("""

@@ -4,7 +4,7 @@ import streamlit as st
 from PIL import Image
 from datetime import timedelta
 
-from util import get_station_data_flu, get_station_names
+from util import get_station_data_flu, get_station_names_and_critical_levels
 
 if __name__ == "__main__":
     logo = Image.open("img/logo_ifast.png")
@@ -13,12 +13,15 @@ if __name__ == "__main__":
     st.sidebar.image(logo, width=150)
     st.title('Hydrological Monitoring')
 
-    station_names = get_station_names()
+    station_names, critical_levels = get_station_names_and_critical_levels()
     default_station = 'Rio Tamanduateí - Mercado Municipal'
     if default_station in station_names:
         station_name = st.selectbox('Select the station', station_names, index=station_names.index(default_station))
     else:
         station_name = st.selectbox('Select the station', station_names)        
+    
+    selected_index = station_names.index(station_name)
+    selected_critical_level = critical_levels[selected_index]
 
     # Date range selector
     col1, col2 = st.columns(2)
@@ -36,13 +39,36 @@ if __name__ == "__main__":
         data = get_station_data_flu(station_name, start_date, end_date, aggregation)
         data['value'] = data['value'] / 100  # Convertendo de cm para m
         fig = px.line(data, x='timestamp', y='value', title=f'River Level - {station_name}')
+        # Adicionar linhas horizontais para os níveis críticos com legendas
+        critical_colors = {
+            "ALERT": "orange",
+            "WARNING": "yellow",
+            "EMERGENCY": "purple",
+            "OVERFLOW": "pink"
+        }
+        
+        translations = {
+            "ALERTA": "ALERT",
+            "ATENÇÃO": "WARNING",
+            "EMERGENCIA": "EMERGENCY",
+            "EXTRAVAZAMENTO": "OVERFLOW"
+        }
+        
+        min_timestamp = data['timestamp'].min()
+        max_timestamp = data['timestamp'].max()
+        
+        for level, value in selected_critical_level.items():
+            translated_level = translations[level]
+            fig.add_scatter(x=[min_timestamp, max_timestamp], y=[value, value], mode='lines', line=dict(color=critical_colors[translated_level], dash='dash'), name=translated_level)
+        
         fig.update_layout(
             yaxis_title='River level (m)',
             title={
                 'text': f'River Level - {station_name}',
                 'x': 0.5,
                 'xanchor': 'center',
-                'font': {'size': 20} 
-            }
+                'font': {'size': 20}
+            },
+            height=600
         )
         st.plotly_chart(fig)

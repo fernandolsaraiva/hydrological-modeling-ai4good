@@ -16,11 +16,11 @@ from src.scripts.preprocess import fill_missing_values_horizontal
 from src.scripts.time_delay_embedding import time_delay_embedding_df
 from src.scripts.utils import load_data
 from util import (get_last_available_date, get_station_code_flu,
-                  get_station_data_flu, get_station_names)
+                  get_station_data_flu, get_station_names_and_critical_levels)
 
 sao_paulo_tz = pytz.timezone('America/Sao_Paulo')
 
-def plot_river_level(data, station_name, last_available_date, prediction_data=None, option = "Prediction for the current moment"):
+def plot_river_level(data, station_name, last_available_date,critical_levels, prediction_data=None, option = "Prediction for the current moment"):
     data['value'] = data['value'] / 100
     fig = px.line(data, x='timestamp', y='value', title=f'River Level - {station_name}')
     fig.add_scatter(x=data['timestamp'], y=data['value'], mode='lines+markers', marker=dict(color='blue', size=5), name='Observed')
@@ -29,13 +29,42 @@ def plot_river_level(data, station_name, last_available_date, prediction_data=No
         prediction_data['prediction'] = prediction_data['prediction'] / 100
         fig.add_scatter(x=prediction_data['timestamp'], y=prediction_data['prediction'], mode='lines+markers', marker=dict(color='orange', size=5), name='Predicted')
     
-    fig.update_layout(title={'text': f'River Level - {station_name}', 'x': 0.5, 'xanchor': 'center'})
+    fig.update_layout(title={'text': f'River Level - {station_name}', 'x': 0.5, 'xanchor': 'center'},height=600)
     if option == "Prediction for the current moment":
         current_time = datetime.now(pytz.timezone('America/Sao_Paulo'))
     else:
         current_time = last_available_date.astimezone(pytz.timezone('America/Sao_Paulo'))
     fig.add_vline(x=current_time, line_width=3, line_dash="dash", line_color="red")
     fig.add_annotation(x=current_time, y=max(data['value']), text="Current Time", showarrow=True, arrowhead=1)
+
+    # Calcular o mínimo e máximo dos timestamps combinados
+    all_timestamps = data['timestamp']
+    if prediction_data is not None:
+        all_timestamps = pd.concat([all_timestamps, prediction_data['timestamp']])
+    
+    min_timestamp = all_timestamps.min()
+    max_timestamp = all_timestamps.max()
+
+    # Adicionar linhas horizontais para os níveis críticos com legendas
+    critical_colors = {
+        "ALERT": "orange",
+        "WARNING": "yellow",
+        "EMERGENCY": "purple",
+        "OVERFLOW": "pink"
+    }
+    
+    translations = {
+        "ALERTA": "ALERT",
+        "ATENÇÃO": "WARNING",
+        "EMERGENCIA": "EMERGENCY",
+        "EXTRAVAZAMENTO": "OVERFLOW"
+    }
+    
+    for level, value in critical_levels.items():
+        translated_level = translations[level]
+        fig.add_scatter(x=[min_timestamp, max_timestamp], y=[value, value], mode='lines', line=dict(color=critical_colors[translated_level], dash='dash'), name=translated_level)
+
+
     fig.update_yaxes(title_text='River Level (m)')
     return fig
 
@@ -50,13 +79,16 @@ if __name__ == "__main__":
     st.sidebar.image(logo, width=150)
     st.title('Forecasting')
 
-    station_names = get_station_names()
+    station_names, critical_levels = get_station_names_and_critical_levels()
     default_station = 'Rio Tamanduateí - Mercado Municipal'
     if default_station in station_names:
         station_name = st.selectbox('Select the station', station_names, index=station_names.index(default_station))
     else:
         station_name = st.selectbox('Select the station', station_names)
-    
+    selected_index = station_names.index(station_name)
+    selected_critical_level = critical_levels[selected_index]
+
+
     # Add options for the user
     option = st.selectbox("Choose the prediction option:", ("Prediction for the current moment", "Choose date/time in the past"))
     # Adicionar um seletor para o usuário escolher o modelo
@@ -125,7 +157,7 @@ if __name__ == "__main__":
         data = get_station_data_flu(station_name, start_time_visualization, end_time, aggregation='10-minute')
         data['timestamp'] = data['timestamp'].dt.tz_convert('America/Sao_Paulo')
 
-        fig1 = plot_river_level(data, station_name,last_available_date=last_available_date, prediction_data=prediction_df, option = option)
+        fig1 = plot_river_level(data, station_name,last_available_date=last_available_date, critical_levels=selected_critical_level,prediction_data=prediction_df, option = option)
         st.plotly_chart(fig1)
 
         # Shap value analysis

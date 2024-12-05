@@ -17,10 +17,10 @@ from src.scripts.database import load_model_from_db
 from src.scripts.preprocess import fill_missing_values_horizontal
 from src.scripts.time_delay_embedding import time_delay_embedding_df
 from src.scripts.utils import load_data
-from util import get_station_code_flu, get_station_names
+from util import get_station_code_flu, get_station_names_and_critical_levels
 
 
-def plot_predictions(y_test, y_pred, timestamps):
+def plot_predictions(y_test, y_pred, timestamps, critical_levels):
     y_test_m = [value / 100 for value in y_test]
     y_pred_m = [value / 100 for value in y_pred]
 
@@ -30,13 +30,37 @@ def plot_predictions(y_test, y_pred, timestamps):
     fig.add_trace(go.Scatter(x=timestamps, y=y_test_m, mode='lines+markers', name='Actual Values', line=dict(color='blue')))
 
     fig.add_trace(go.Scatter(x=timestamps, y=y_pred_m, mode='lines+markers', name='Predicted Values', line=dict(color='orange')))
+    
+    # Add horizontal lines for critical levels with labels
+    critical_colors = {
+        "ALERT": "orange",
+        "WARNING": "yellow",
+        "EMERGENCY": "purple",
+        "OVERFLOW": "pink"
+    }
+    
+    translations = {
+        "ALERTA": "ALERT",
+        "ATENÇÃO": "WARNING",
+        "EMERGENCIA": "EMERGENCY",
+        "EXTRAVAZAMENTO": "OVERFLOW"
+    }
+    
+    min_timestamp = min(timestamps)
+    max_timestamp = max(timestamps)
+    
+    for level, value in critical_levels.items():
+        translated_level = translations[level]
+        fig.add_scatter(x=[min_timestamp, max_timestamp], y=[value, value], mode='lines', line=dict(color=critical_colors[translated_level], dash='dash'), name=translated_level)
+    
 
     fig.update_layout(
         title='Comparison between Actual and Predicted Values',
         xaxis_title='Timestamp',
         yaxis_title='River level (m)',
         legend=dict(x=0, y=1),
-        margin=dict(l=0, r=0, t=30, b=0)
+        margin=dict(l=0, r=0, t=30, b=0), 
+        height=600
     )
     st.plotly_chart(fig)
 
@@ -47,12 +71,14 @@ if __name__ == "__main__":
     st.sidebar.image(logo, width=150)
     st.title('Historical Data and Predictions')
 
-    station_names = get_station_names()
+    station_names, critical_levels = get_station_names_and_critical_levels()
     default_station = 'Rio Tamanduateí - Mercado Municipal'
     if default_station in station_names:
         station_name = st.selectbox('Select the station', station_names, index=station_names.index(default_station))
     else:
         station_name = st.selectbox('Select the station', station_names)
+    selected_index = station_names.index(station_name)
+    selected_critical_level = critical_levels[selected_index]
 
     col1, col2 = st.columns(2)
 
@@ -100,7 +126,7 @@ if __name__ == "__main__":
         rmse = np.sqrt(mean_squared_error(y_test_filtered, y_pred_filtered))
         st.write(f'RMSE: {rmse}')
 
-        plot_predictions(y_test_filtered, y_pred_filtered, adjusted_timestamps_filtered)
+        plot_predictions(y_test_filtered, y_pred_filtered, adjusted_timestamps_filtered, critical_levels=selected_critical_level)
 
         # Shap value analysis
         explainer = shap.TreeExplainer(model)

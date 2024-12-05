@@ -41,6 +41,7 @@ if __name__ == "__main__":
                 'x': 0.5,
                 'xanchor': 'center',
                 'font': {'size': 20} 
-            }
+            },
+            height=600
         )
         st.plotly_chart(fig)

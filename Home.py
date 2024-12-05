@@ -55,4 +55,3 @@ if __name__ == "__main__":
         stations = fetch_stations(station_type, DATABASE_URL)
         map_sp = create_map(stations, station_type)
         st_folium(map_sp, width=700, height=500)
-        st.write(f"Map of {station_type} stations generated!")

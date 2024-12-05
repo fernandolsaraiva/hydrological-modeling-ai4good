@@ -137,6 +137,16 @@ def get_station_names():
     conn.close()
     return df['name'].tolist()
 
+def get_station_names_and_critical_levels():
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    conn = psycopg2.connect(DATABASE_URL)
+    query = "SELECT name, critical_levels FROM station.station_flu"
+    df = pd.read_sql(query, conn)
+    conn.close()
+    station_names = df['name'].tolist()
+    critical_levels = df['critical_levels'].tolist()
+    return station_names, critical_levels
+
 def get_station_code_flu(station_name):
     DATABASE_URL = os.getenv("DATABASE_URL")
     conn = psycopg2.connect(DATABASE_URL)
