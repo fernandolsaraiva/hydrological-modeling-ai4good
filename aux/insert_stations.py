@@ -1,3 +1,5 @@
+""""This script inserts the stations from the csv files to the database."""
+
 import os
 
 import pandas as pd
@@ -21,7 +23,6 @@ def insert_stations_flu():
     cursor.close()
     conn.close()
 
-# faça uma função semelhante a de cima mas para inserir os dados do arquivo stations_plu.csv na tabela station.station_plu:)
 def insert_stations_plu():
     stations_plu = pd.read_csv('stations_plu.csv')    
     DATABASE_URL = os.getenv("DATABASE_URL")
