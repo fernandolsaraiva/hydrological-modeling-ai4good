@@ -1,6 +1,5 @@
 streamlit
 streamlit_folium
-streamlit_shap
 folium
 watchdog
 plotly

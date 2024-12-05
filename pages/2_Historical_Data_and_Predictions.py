@@ -139,12 +139,3 @@ if __name__ == "__main__":
         fig.savefig("shap_summary_plot.png", bbox_inches='tight')
         st.image("shap_summary_plot.png")
         plt.clf()
-
-
-        # with st.spinner("Generating SHAP summary plot..."):
-        #     shap.initjs()
-        #     fig, ax = plt.subplots()
-        #     shap.summary_plot(shap_values, X_test, plot_type="beeswarm", show=False)
-        #     plt.tight_layout()
-        #     streamlit_shap.st_shap(fig)
-        #     plt.clf()
