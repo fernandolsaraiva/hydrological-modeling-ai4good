@@ -9,6 +9,7 @@ psycopg2
 black
 scikit-learn
 xgboost==1.7.3
-shap
+shap==0.45.0
+numpy==1.26.4
 matplotlib
 ipykernel
