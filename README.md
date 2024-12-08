@@ -116,7 +116,10 @@ This placement ensures that users understand the database structure after they h
 
 ### Model Training and Prediction
 
-- `src/scripts/train.py`: Contains functions for training and predicting with XGBoost models. It is possible to customize with new station names and codes, as well as the horizons, to train new models and save them to the database. In the future, we plan to introduce the capability to train new models (such as LightGBM and CatBoost).
+- `src/scripts/train.py`: Contains functions for training and predicting with XGBoost models. It is possible to customize with new station names and codes, as well as the horizons, to train new models and save them to the database. The model uses as input data the current and past levels of the hydrological station and the current and past rainfall data from various pluviometric stations. The output data (predictions) are the future values of the level of this hydrological station. This input-output scheme is inherited from the ongoing master's thesis work: "Hydrological modeling in a highly urbanized watershed using explainable machine learning". In the future, we plan to introduce the capability to train new models (such as LightGBM and CatBoost).
+
+
+
 - `src/scripts/database.py`: Functions for saving and loading models from the database.
 
 ### Data Handling
