@@ -43,7 +43,7 @@ def load_model_from_db(station, horizon, db_url):
 def load_all_models_from_db(station_code, DATABASE_URL):
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
-    cursor.execute("SELECT horizon, model, parameters, period, rmse FROM prediction.model WHERE station = %s", (station_code,))
+    cursor.execute("SELECT horizon, model, parameters, period, rmse FROM prediction.model WHERE station = %s and main = TRUE", (station_code,))
     results = cursor.fetchall()
     
     models = []
@@ -66,4 +66,6 @@ def load_all_models_from_db(station_code, DATABASE_URL):
     
     cursor.close()
     conn.close()
+
+    models.sort(key=lambda x: x[0])
     return models
