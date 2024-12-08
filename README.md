@@ -15,14 +15,14 @@ This project is an operational tool for predicting urban floods using explainabl
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/yourusername/floodcasting-xai-alert-system.git
-    cd floodcasting-xai-alert-system
+    git clone https://github.com/fernandolsaraiva/hydrological-modeling-ai4good.git
+    cd hydrological-modeling-ai4good
     ```
 
 2. Create and activate a virtual environment:
     ```sh
-    python -m venv venv
-    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+    conda create -n ai4good python==3.11
+    conda activate ai4good
     ```
 
 3. Install the required packages:
@@ -34,18 +34,27 @@ This project is an operational tool for predicting urban floods using explainabl
 
 1. Set up the environment variables by creating a `.env` file with the following content:
     ```env
-    DATABASE_URL=your_database_url
+    DATABASE_URL=database_url
     ```
+
+Note: The database is in read-only mode. You can view the data but cannot make any modifications.
 
 2. Run the Streamlit application:
     ```sh
     streamlit run Home.py
     ```
 
+In production, the application is available at www.floodcastingxai.com
+
+
 3. To run the scraper:
     ```sh
     python scraper.py
     ```
+
+### Hosting Information
+
+Our entire infrastructure is hosted on Heroku. This includes our PostgreSQL database, our main Streamlit application, and even our scraper, which runs continuously. Heroku provides a reliable and scalable cloud platform for our needs. Additionally, Heroku leverages AWS (Amazon Web Services) to ensure high availability and performance.
 
 ## Project Structure
 ```
@@ -93,7 +102,7 @@ This project is an operational tool for predicting urban floods using explainabl
 
 ### Model Training and Prediction
 
-- `src/scripts/train.py`: Contains functions for training and predicting with XGBoost models.
+- `src/scripts/train.py`: Contains functions for training and predicting with XGBoost models. It is possible to customize with new station names and codes, as well as the horizons, to train new models and save them to the database. In the future, we plan to introduce the capability to train new models (such as LightGBM and CatBoost).
 - `src/scripts/database.py`: Functions for saving and loading models from the database.
 
 ### Data Handling
@@ -103,10 +112,10 @@ This project is an operational tool for predicting urban floods using explainabl
 
 ### Streamlit Pages
 
-- `pages/1_Real_Time_Forecasting.py`: Real-time forecasting interface.
-- `pages/2_Historical_Data_and_Predictions.py`: Historical data and predictions interface.
-- `pages/3_Hydrological_Monitoring.py`: Hydrological monitoring interface.
-- `pages/4_Rainfall_Monitoring.py`: Rainfall monitoring interface.
+- `pages/1_Real_Time_Forecasting.py`: Real-time forecasting interface. Users can select the station, the prediction time (current or a past moment), and obtain the prediction for a time horizon. Additionally, users can choose any point in the prediction to get an explainability analysis of that point using SHAP values.
+- `pages/2_Historical_Data_and_Predictions.py`: Historical data and predictions interface. Users can select any period in the past and choose the prediction model to view the predictions. Each model is trained for a specific time horizon (e.g., 10 minutes, 20 minutes, etc.). Users can view the predictions and the SHAP values analysis.
+- `pages/3_Hydrological_Monitoring.py`: Hydrological monitoring interface. Users can select the station, the desired period, and the type of aggregation (10-minute, hourly, or daily) to view segments of the river level time series.
+- `pages/4_Rainfall_Monitoring.py`: Rainfall monitoring interface. Users can select the station, the desired period, and the type of aggregation (10-minute, hourly, or daily) to view segments of the rainfall level time series.
 - `pages/5_About_Us.py`: Information about the team.
 
 ### Auxiliary Scripts
