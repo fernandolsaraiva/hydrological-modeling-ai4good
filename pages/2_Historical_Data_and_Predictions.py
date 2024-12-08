@@ -33,8 +33,8 @@ def plot_predictions(y_test, y_pred, timestamps, critical_levels):
     
     # Add horizontal lines for critical levels with labels
     critical_colors = {
-        "ALERT": "orange",
-        "WARNING": "yellow",
+        "ALERT": "green",
+        "WARNING": "orange",
         "EMERGENCY": "purple",
         "OVERFLOW": "pink"
     }

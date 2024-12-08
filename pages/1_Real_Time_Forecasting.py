@@ -64,8 +64,8 @@ def plot_river_level(data, station_name, last_available_date,critical_levels, pr
 
     # Adicionar linhas horizontais para os níveis críticos com legendas
     critical_colors = {
-        "ALERT": "orange",
-        "WARNING": "yellow",
+        "ALERT": "green",
+        "WARNING": "orange",
         "EMERGENCY": "purple",
         "OVERFLOW": "pink"
     }
@@ -139,7 +139,7 @@ if __name__ == "__main__":
             last_available_date = pd.to_datetime(last_available_date)
         end_time = last_available_date
         start_time = end_time - pd.Timedelta(2, 'h')
-        start_time_visualization = end_time - pd.Timedelta(1, 'D')
+        start_time_visualization = end_time - pd.Timedelta(hours=12)
         df = load_data(start_time, end_time)
         df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_convert('America/Sao_Paulo')
         df= df.sort_values(by='timestamp', ascending=False).head(7)
@@ -167,7 +167,6 @@ if __name__ == "__main__":
             predictions.append(prediction[0])
             upper_bounds.append(prediction[0] + 1.96 * rmse['test'])
             lower_bounds.append(prediction[0] - 1.96 * rmse['test'])
-
             if horizon == selected_horizon:
                 selected_model = model
                 

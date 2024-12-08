@@ -1,8 +1,9 @@
+from datetime import timedelta
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 from PIL import Image
-from datetime import timedelta
 
 from util import get_station_data_flu, get_station_names_and_critical_levels
 
@@ -41,8 +42,8 @@ if __name__ == "__main__":
         fig = px.line(data, x='timestamp', y='value', title=f'River Level - {station_name}')
         # Adicionar linhas horizontais para os níveis críticos com legendas
         critical_colors = {
-            "ALERT": "orange",
-            "WARNING": "yellow",
+            "ALERT": "green",
+            "WARNING": "orange",
             "EMERGENCY": "purple",
             "OVERFLOW": "pink"
         }
