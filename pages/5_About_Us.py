@@ -32,7 +32,7 @@ def main():
     
     with col3:
         img3 = "img/leonardo_santos.jpeg"
-        st.image(img3, caption="Leonardo Santos is Principal researcher at CEMADEN-MCTI, permanent professor and member of the Council of the Graduate Program in Applied Computing (CAP) at INPE, and collaborating professor of the Graduate Program in Computer Science at UNIFESP. Bachelor in Physics from UFBA, master and PhD from CAP-INPE. Postdoctoral fellow at Humboldt University (Germany) in Physics, with an emphasis on Stochastic Processes and Critical Infrastructure Protection.",width=250)
+        st.image(img3, caption="Leonardo Santos is a Titular Researcher in Computational Modeling at CEMADEN-MCTI, a permanent professor in INPE's Applied Computing Graduate Program, and a collaborating professor in UNIFESP's Computer Science Graduate Program. Santos has a bachelor's in Physics from UFBA, a master's and PhD from INPE, and was a Visiting Professor at the Physics department at Humboldt University (Berlin).",width=250)
 
 
 
