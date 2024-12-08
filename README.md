@@ -56,6 +56,8 @@ In production, the application is available at www.floodcastingxai.com
 
 Our entire infrastructure is hosted on Heroku. This includes our PostgreSQL database, our main Streamlit application, and even our scraper, which runs continuously. Heroku provides a reliable and scalable cloud platform for our needs. Additionally, Heroku leverages AWS (Amazon Web Services) to ensure high availability and performance.
 
+The GitHub repository is linked to Heroku, so each new git push to the main branch automatically triggers a new deployment of the application.
+
 ## Project Structure
 ```
 . 
@@ -92,6 +94,18 @@ Our entire infrastructure is hosted on Heroku. This includes our PostgreSQL data
 ├── scraper.py 
 ├── util.py
 ```
+
+
+## Database Structure
+
+The database structure is as follows:
+
+- **Schemas:**
+  - `prediction`: Contains the `model` table, which holds all the trained models. Only the models marked with `main = True` are active; the others are inactive.
+  - `station`: Contains the `station_flu` and `station_plu` tables, which hold information about the fluviometric and pluviometric stations (name, latitude, longitude, code, etc.).
+  - `timeseries`: Contains the `data_station_flu` and `data_station_plu` tables, which hold the measured values from each station.
+
+This placement ensures that users understand the database structure after they have an overview of the project structure.
 
 ## Key Components
 
