@@ -23,11 +23,12 @@ args = parser.parse_args()
 # %%
 # Exemplo de uso
 start_time = '2022-01-01'
-end_time = '2022-06-01'
+end_time = '2022-12-01'
 period = f'{start_time} to {end_time}'
 station_name_flu = ['Rio Tamanduateí - Mercado Municipal']
 load_data_bool = False
 if load_data_bool:
+    print('Loading data...')
     df = load_data(start_time, end_time, station_name_flu)
     df.to_csv('data/data_experimental.csv', index=False)
 #df = pd.read_csv('data/data_experimental.csv')
