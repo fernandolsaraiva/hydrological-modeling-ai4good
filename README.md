@@ -1,4 +1,4 @@
-# Floodcasting XAI Alert System
+# Floodcasting XAI Alert System (www.floodcastingxai.com)
 
 This project is an operational tool for predicting urban floods using explainable Artificial Intelligence (XAI). It uses open-source tools, real-time execution, a user-friendly interface, and a scalable approach. The project is supported by the AI4Good Brazil Conference.
 
