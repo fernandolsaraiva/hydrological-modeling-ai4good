@@ -99,25 +99,7 @@ require([
             }
         }
     });
-
-    // Function to get camera position
-    function getCameraPosition() {
-        return {
-            camera: {
-                position: {
-                    latitude: view.camera.position.latitude,
-                    longitude: view.camera.position.longitude,
-                    z: view.camera.position.z
-                },
-                tilt: view.camera.tilt
-            }
-        }
-
-    }
-
-    // Pass view to global variable
     window.view = view;
-    window.getCameraPosition = getCameraPosition;
 
     /**********************************************
    * WATERWAYS
@@ -240,6 +222,23 @@ require([
      * Monitoring Stations Layer
      **********************************************/
 
+    function transformStationData(stations) {
+        return stations.map(station => ({
+            geometry: {
+                type: "point",
+                latitude: station.latitude,
+                longitude: station.longitude,
+                spatialReference: { wkid: 4326 }
+            },
+            attributes: {
+                name: station.name,
+                elevation: station.elevation
+            }
+        }));
+    }
+
+    const stationFeatures = transformStationData(window.stations_data);
+
     const stationsRenderer = {
         type: "simple",
         symbol: {
@@ -291,24 +290,9 @@ require([
         ]
     };
 
-    function transformStationData(stations) {
-        return stations.map(station => ({
-            geometry: {
-                type: "point",
-                latitude: station.latitude,
-                longitude: station.longitude,
-                spatialReference: { wkid: 4326 }
-            },
-            attributes: {
-                name: station.name,
-                elevation: station.elevation
-            }
-        }));
-    }
-
     const stationsLayer = new FeatureLayer({
         title: "Estações de Monitoramento",
-        source: transformStationData(window.stations_data),
+        source: stationFeatures,
         copyright: "OpenStreetMap",
         spatialReference: { wkid: 4326 },
         objectIdField: "ObjectID",
@@ -352,12 +336,11 @@ require([
 
     // Station navigation state
     let currentStationIndex = -1;
-    let stationFeatures = [];
 
     // Function to navigate to a station
     function navigateToStation(index) {
         if (stationFeatures.length === 0) return;
-
+        
         currentStationIndex = index;
         const station = stationFeatures[currentStationIndex];
 
@@ -412,17 +395,16 @@ require([
                     geometry: combinedGeometry,
                     layer: layerWaterways
                 };
-            }
-        });
 
-        // Navigate camera to station
-        view.goTo({
-            target: station.geometry,
-            zoom: 16,
-            tilt: 40
-        }, {
-            duration: 1000,
-            easing: "ease-out"
+                view.goTo({
+                    target: combinedGeometry,
+                    zoom: 16,
+                    tilt: 40
+                }, {
+                    duration: 1000,
+                    easing: "ease-out"
+                });
+            }
         });
 
     }
@@ -494,9 +476,6 @@ require([
     const stationsList = document.createElement("calcite-list");
     stationsList.setAttribute("selection-mode", "single");
     stationsListContainer.appendChild(stationsList);
-
-    // Transform stations data
-    stationFeatures = transformStationData(window.stations_data);
 
     // Create list items for each station
     stationFeatures.forEach((station, index) => {
