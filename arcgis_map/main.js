@@ -1,33 +1,26 @@
 require([
     "esri/WebScene",
     "esri/views/SceneView",
-    "esri/geometry/Point",
-    "esri/geometry/Extent",
-    "esri/Graphic",
     "esri/layers/FeatureLayer",
-    "esri/layers/CSVLayer",
-    "esri/layers/VectorTileLayer",
-    "esri/layers/GraphicsLayer",
-    "esri/layers/support/LabelClass",
-    "esri/symbols/WebStyleSymbol",
-    "esri/widgets/Search",
     "esri/widgets/Expand",
-    "esri/widgets/DirectLineMeasurement3D",
     "esri/widgets/ElevationProfile",
-    "esri/widgets/LineOfSight",
-    "esri/widgets/Legend",
     "esri/widgets/BasemapGallery",
-    "esri/widgets/Sketch",
-    "esri/widgets/Editor",
     "esri/widgets/LayerList",
     "esri/layers/BaseElevationLayer",
     "esri/layers/ElevationLayer",
     "esri/geometry/geometryEngine"
-], function (WebScene, SceneView, Point, Extent, Graphic,
-    FeatureLayer, CSVLayer, VectorTileLayer, GraphicsLayer, LabelClass,
-    WebStyleSymbol,
-    Search, Expand, DirectLineMeasurement3D, ElevationProfile, LineOfSight, Legend, BasemapGallery, Sketch, Editor, LayerList,
-    BaseElevationLayer, ElevationLayer, geometryEngine) {
+], function (
+    WebScene,
+    SceneView,
+    FeatureLayer,
+    Expand,
+    ElevationProfile,
+    BasemapGallery,
+    LayerList,
+    BaseElevationLayer,
+    ElevationLayer,
+    geometryEngine
+) {
 
     const ExaggeratedElevationLayer = BaseElevationLayer.createSubclass({
         properties: {
@@ -226,8 +219,8 @@ require([
         return stations.map(station => ({
             geometry: {
                 type: "point",
-                latitude: station.latitude,
-                longitude: station.longitude,
+                latitude: Number(station.latitude),
+                longitude: Number(station.longitude),
                 spatialReference: { wkid: 4326 }
             },
             attributes: {
@@ -396,8 +389,33 @@ require([
                     layer: layerWaterways
                 };
 
-                view.goTo({
-                    target: combinedGeometry,
+                // view.goTo({
+                //     target: combinedGeometry,
+                //     zoom: 16,
+                //     tilt: 40
+                // }, {
+                //     duration: 1000,
+                //     easing: "ease-out"
+                // });
+            }
+        });
+
+        // Find stations (To fix zoom bug)
+        const queryStations = stationsLayer.createQuery();
+        queryStations.geometry = station.geometry;
+        queryStations.distance = 1;
+        queryStations.units = "meters";
+        queryStations.spatialRelationship = "within";
+        queryStations.spatialRelationship = "intersects";
+        queryStations.returnGeometry = true;
+        queryStations.outFields = ["*"];
+
+        stationsLayer.queryFeatures(queryStations).then(function (result) {
+            if (result.features.length > 0) {
+
+                // Navigate camera to station
+                window.view.goTo({
+                    target: result.features[0].geometry,
                     zoom: 16,
                     tilt: 40
                 }, {
@@ -408,30 +426,6 @@ require([
         });
 
     }
-
-    // Previous station button
-    const prevButton = document.createElement("calcite-button");
-    prevButton.setAttribute("appearance", "solid");
-    prevButton.setAttribute("color", "blue");
-    prevButton.setAttribute("icon-start", "chevron-left");
-    prevButton.innerHTML = "Previous";
-    prevButton.onclick = () => {
-        if (currentStationIndex > 0) {
-            navigateToStation(currentStationIndex - 1);
-        }
-    };
-
-    // Next station button
-    const nextButton = document.createElement("calcite-button");
-    nextButton.setAttribute("appearance", "solid");
-    nextButton.setAttribute("color", "blue");
-    nextButton.setAttribute("icon-end", "chevron-right");
-    nextButton.innerHTML = "Next";
-    nextButton.onclick = () => {
-        if (currentStationIndex < stationFeatures.length - 1) {
-            navigateToStation(currentStationIndex + 1);
-        }
-    };
 
     // Overview button
     const overviewButton = document.createElement("calcite-button");
@@ -457,9 +451,7 @@ require([
     const navContainer = document.createElement("div");
     navContainer.style.display = "flex";
     navContainer.style.gap = "8px";
-    navContainer.appendChild(prevButton);
     navContainer.appendChild(overviewButton);
-    navContainer.appendChild(nextButton);
 
     view.ui.add(navContainer, "bottom-left");
 

@@ -22,8 +22,8 @@ def fetch_stations_as_json(db_url):
     formatted_stations = [
         {
             "name": station[0],
-            "latitude": station[1],
-            "longitude": station[2]
+            "latitude": float(station[1]),
+            "longitude": float(station[2])
         }
         for station in stations
     ]
@@ -73,8 +73,8 @@ def main():
         <script type="module" src="https://js.arcgis.com/calcite-components/1.9.2/calcite.esm.js"></script>
         <script nomodule="" src="https://js.arcgis.com/calcite-components/1.9.2/calcite.js"></script>
         <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.9.2/calcite.css" />
-        <link rel="stylesheet" href="https://js.arcgis.com/4.28/esri/themes/light/main.css">
-        <script src="https://js.arcgis.com/4.28/"></script>
+        <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css">
+        <script src="https://js.arcgis.com/4.29/"></script>
         {css}
         <script>
             window.stations_data = {json_stations};
