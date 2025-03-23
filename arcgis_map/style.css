@@ -1,0 +1,33 @@
+html,
+body,
+#viewDiv {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+#extra {
+    width: 80%;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+.container-menu {
+    position: absolute;
+    top: 17px;
+    right: 260px;
+    height: auto;
+    width: auto;
+}
+
+button#custom-button {
+    width: auto;
+    height: 30px;
+    position: relative;
+    background-color: white;
+    border-color: #a4a4a4;
+    box-shadow: none;
+    border-width: 1px;
+}
