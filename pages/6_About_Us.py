@@ -25,6 +25,10 @@ def main():
     with col1:
         img1 = "img/fernando_saraiva.png"
         st.image(img1, caption="Fernando Saraiva holds a Bachelor's degree in Electronic Engineering from the Aeronautics Institute of Technology (ITA) and is pursuing a Master's degree in Computer Science with a focus on Machine Learning at the Federal University of São Paulo (Unifesp). He works as a data scientist specializing in artificial intelligence applications in renewable energy.",width=240)
+
+        img4 = "img/elton_escobar.jpeg"
+        img4 = Image.open(img4).rotate(-90, expand=True)
+        st.image(img4, caption="Elton Escobar holds a Bachelor’s degree in Environmental Science from the Federal University of São Paulo (UNIFESP), a Master’s degree in Environmental Science from the Federal University of São Carlos (UFSCar), and a Ph.D. in Remote Sensing from the National Institute for Space Research (INPE). He works in the fields of geoinformatics, remote sensing, urban planning, hydrodynamic modeling, urban flooding, flood early warning systems (FEWS), and climate change and water security. Currently, he is a postdoctoral researcher at Cemaden.",width=240)
     
     with col2:
         img2 = "img/luan_barauna.jpeg"
