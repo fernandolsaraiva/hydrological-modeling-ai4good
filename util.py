@@ -233,3 +233,63 @@ def load_model_from_db(horizon):
     model = pickle.loads(model_data[0])
     
     return model
+
+def email_exists(email):
+    """
+    Checks whether the provided email is already registered in the "user".info table. 
+
+    Args:
+        email (str): The email address to check.
+
+    Returns:
+        bool: True if the email exists, False otherwise.
+    """
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    conn = psycopg2.connect(DATABASE_URL)
+    cur = conn.cursor()
+    query = 'SELECT COUNT(*) FROM "user".info WHERE email = %s'
+    cur.execute(query, (email,))
+    result = cur.fetchone()
+    cur.close()
+    conn.close()
+    return result[0] > 0
+
+def insert_user_info(name, number, email, station):
+    """
+    Inserts a new user's information into the "user".info table.
+    It assumes that the email has not been registered yet.
+
+    Args:
+        name (str): The user's name.
+        number (str): The user's phone number (will be converted to a numeric type).
+        email (str): The user's email address.
+        station (str): The selected station.
+
+    Returns:
+        tuple: A tuple (success, message) where success is a boolean indicating if the insertion was successful,
+               and message is a string describing the result.
+    """
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    
+    # Convert the phone number to numeric type.
+    try:
+        numeric_number = float(number)
+    except ValueError:
+        return False, "The phone number must be numeric."
+    
+    conn = psycopg2.connect(DATABASE_URL)
+    cur = conn.cursor()
+    query = 'INSERT INTO "user".info (name, number, email, station) VALUES (%s, %s, %s, %s)'
+    try:
+        cur.execute(query, (name, numeric_number, email, station))
+        conn.commit()
+        success = True
+        message = "Registration successful!"
+    except Exception as e:
+        success = False
+        message = f"An error occurred: {e}"
+    finally:
+        cur.close()
+        conn.close()
+    
+    return success, message
