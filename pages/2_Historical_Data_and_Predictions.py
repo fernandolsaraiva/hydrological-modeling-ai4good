@@ -139,3 +139,4 @@ if __name__ == "__main__":
         fig.savefig("shap_summary_plot.png", bbox_inches='tight')
         st.image("shap_summary_plot.png")
         plt.clf()
+        os.remove("shap_summary_plot.png")
