@@ -236,7 +236,7 @@ def load_model_from_db(horizon):
 
 def email_exists(email):
     """
-    Checks whether the provided email is already registered in the "user".info table. 
+    Checks whether the provided email is already registered in the users.info table. 
 
     Args:
         email (str): The email address to check.
@@ -247,7 +247,7 @@ def email_exists(email):
     DATABASE_URL = os.getenv("DATABASE_URL")
     conn = psycopg2.connect(DATABASE_URL)
     cur = conn.cursor()
-    query = 'SELECT COUNT(*) FROM "user".info WHERE email = %s'
+    query = 'SELECT COUNT(*) FROM users.info WHERE email = %s'
     cur.execute(query, (email,))
     result = cur.fetchone()
     cur.close()
@@ -256,7 +256,7 @@ def email_exists(email):
 
 def insert_user_info(name, number, email, station):
     """
-    Inserts a new user's information into the "user".info table.
+    Inserts a new user's information into the users.info table.
     It assumes that the email has not been registered yet.
 
     Args:
@@ -279,7 +279,7 @@ def insert_user_info(name, number, email, station):
     
     conn = psycopg2.connect(DATABASE_URL)
     cur = conn.cursor()
-    query = 'INSERT INTO "user".info (name, number, email, station) VALUES (%s, %s, %s, %s)'
+    query = 'INSERT INTO users.info (name, number, email, station) VALUES (%s, %s, %s, %s)'
     try:
         cur.execute(query, (name, numeric_number, email, station))
         conn.commit()
