@@ -9,6 +9,7 @@ import streamlit as st
 def get_station_data_flu(station_name, start_date, end_date, aggregation):
     DATABASE_URL = os.getenv("DATABASE_URL")
     conn = psycopg2.connect(DATABASE_URL)
+
     query = f"""
     SELECT ts.*
     FROM timeseries.data_station_flu ts
