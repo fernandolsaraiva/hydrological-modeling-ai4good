@@ -11,6 +11,7 @@ import shap
 import streamlit as st
 import xgboost as xgb
 from PIL import Image
+from utils.translations import translations
 
 from src.scripts.database import load_all_models_from_db
 from src.scripts.preprocess import fill_missing_values_horizontal
@@ -22,64 +23,29 @@ from util import (get_last_available_date, get_station_code_flu,
 # Timezone
 sao_paulo_tz = pytz.timezone('America/Sao_Paulo')
 
-# --- Render menu sidebar existente ---
 render_menu()
 
-# Language selection
-lang = st.sidebar.selectbox("Language", ["Portuguese", "English"])
+lang = st.session_state.get("lang", "Português")  # Default to Portuguese if not set
 
-translations = {
-   "Portuguese": {"title": "Painel de Previsão de Alagamentos", 
-                  "page_title": "Sistema de Alerta de Alagamentos",
-                  "select_station": "Selecione a Estação",
-                  "prediction_option": "Opção de Previsão",
-                  "current_moment": "Instante atual",
-                  "past_moment": "Data/Hora Passada",
-                  "horizon": "Horizonte (minutos)",
-                  "select_station": "Selecione a Estação",
-                  "select_date": "Selecione a Data",
-                  "select_time": "Selecione a Hora",
-                  "forecast": "Previsão",
-                  "explainability": "Explicabilidade",
-                  "explainability_analysis": "Análise de Explicabilidade",
-                  "plot": "Plotar Gráfico",  
-                  "loading":"Carregando dados e gerando gráficos...",
-                  "river_level": "Nível do Rio",
-                  "current_time": "Hora Atual",
-                  "observed": "Observado",
-                  "forecast": "Previsão",
-                  "uncertainty": "Incerteza"
+translations2 = {
+   "Português": {"title": "Painel de Previsão Hidrológica", 
+                  "page_title": "Sistema de Alerta de Alagamentos"
    },
-    "English": {"title": "Flood Forecasting Dashboard", 
+    "English": {"title": "Hydrological Forecasting Dashboard", 
                "page_title": "Flood Alert System",
-               "select_station": "Select Station",
-               "prediction_option": "Prediction Option",
-               "current_moment": "Current moment",
-               "past_moment": "Past Date/Time",
-               "horizon": "Horizon (minutes)",
-               "select_station": "Select Station",
-               "select_date": "Select Date",
-               "select_time": "Select Time",
-               "forecast": "Forecast",
-               "explainability": "Explainability",
-               "explainability_analysis": "Explainability Analysis",
-               "plot": "Plot Graph",
-               "loading":"Loading data and generating plots...",
-               "river_level": "River Level",
-               "current_time": "Current Time",
-               "observed": "Observed",
-               "forecast": "Forecast",
-               "uncertainty": "Uncertainty"
+    },
+    "Español": {"title": "Panel de Pronóstico Hidrológico",
+                "page_title": "Sistema de Alerta de Inundaciones"
     }
 }
 
 st.set_page_config(
-    page_title=translations[lang]["page_title"],
+    page_title=translations2[lang]["page_title"],
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-st.title(translations[lang]["title"])
+st.title(translations2[lang]["title"])
 
 # --- Função de plotagem ---
 def plot_river_level(data, station_name, last_available_date, critical_levels, prediction_data=None, option="current"):

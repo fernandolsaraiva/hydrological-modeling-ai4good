@@ -7,6 +7,7 @@ from streamlit_folium import st_folium
 import folium
 import psycopg2
 import os
+from utils.translations import translations
 
 st.set_page_config(
     page_title="Floodcasting XAI Alert System",
@@ -15,30 +16,51 @@ st.set_page_config(
 )
 render_menu()
 
-# Define translations
-translations = {
-   "Portuguese": {"title": "Bem-vindo ao ", 
+translations2 = {
+   "Português": {"title": "Bem-vindo ao ", 
                     "body": "Use as abas à esquerda ou os cards abaixo para selecionar a região de interesse e visualizar as previsões correspondentes.",
-                    "subtitle1":"Selecione a Região de interesse"},
-   "English": {"title": "Welcome to the ", 
+                    "subtitle1":"Selecione a Região de interesse"
+   },
+    "English": {"title": "Welcome to the ", 
                 "body": "Use the tabs on the left or the cards below to select the region of interest and view the corresponding forecasts.",
-                "subtitle1": "Selecione a Região de interesse"},
+                "subtitle1": "Select the Region of Interest"
+    },
+    "Español": {"title": "Bienvenido al ", 
+                "body": "Use las pestañas de la izquierda o las tarjetas de abajo para seleccionar la región de interés y ver las predicciones correspondientes.",
+                "subtitle1": "Seleccione la Región de interés"
+    }
 }
-# Language selection
-lang = st.sidebar.selectbox("Language", ["Portuguese", "English"])
+
+lang = st.session_state.get("lang", "Português")  # Default to Portuguese if not set
 
 # Display text based on selection
-st.title(translations[lang]["title"] + "Floodcasting XAI Alert System")
-st.write(translations[lang]["body"])
+st.title(translations2[lang]["title"] + "Floodcasting XAI Alert System")
+st.write(translations2[lang]["body"])
 
 st.divider()
-st.subheader(translations[lang]["subtitle1"])
+st.subheader(translations2[lang]["subtitle1"])
 
 cards_data = [
-    {"title": "São Paulo", "page": "pages/sp_realtime.py", "img": "https://img.freepik.com/fotos-premium/ponte-de-cabo-em-uma-paisagem-urbana-em-sao-paulo-brasil_1153727-876.jpg?semt=ais_hybrid&w=740&q=80"},
-    {"title": "Rio de Janeiro", "page": "pages/rj_realtime.py", "img": "https://media.istockphoto.com/id/608540602/photo/aerial-panorama-of-botafogo-bay-rio-de-janeiro.jpg?s=612x612&w=0&k=20&c=9vsK_9r4ldoLyfS6oLnUbvpQOgYCfzr4xCZ1-YFNJZo="},
-    {"title": "Paraguai", "page": "pages/py_realtime.py", "img": "https://media.istockphoto.com/id/525336822/photo/presidential-palace-in-asuncion-paraguay.jpg?s=612x612&w=0&k=20&c=lZ80xPsCwmBdfRB_iG_U4kSiyhK-BY7Lji_YzfsupOA="},
-    {"title": "Uruguai", "page": "pages/uy_realtime.py", "img": "https://media.istockphoto.com/id/1295557985/photo/artigas-mausoleum-and-salvo-palace-in-montevideo-uruguay.jpg?s=612x612&w=0&k=20&c=LyPOLUtgtY-cvT29TL2DErrf5Vvhp8W0IrGHvo6pVu4="},
+    {
+        "title": "São Paulo",
+        "page": "pages/sp_realtime.py",
+        "img": "https://drive.google.com/thumbnail?id=15OHv2DW00K18LV5QF8nQduOygrtef4c-&sz=w2000"
+    },
+    {
+        "title": "Rio de Janeiro",
+        "page": "pages/rj_realtime.py",
+        "img": "https://drive.google.com/thumbnail?id=1tZSCPheUBNzh5HLfb9heFVulKfFbkY9f&sz=w2000"
+    },
+    {
+        "title": "Paraguai",
+        "page": "pages/py_realtime.py",
+        "img": "https://drive.google.com/thumbnail?id=1XWgu1gLrmTHKL7TLLrhZtkcBl4_ZUWWe&sz=w2000"
+    },
+    {
+        "title": "Uruguai",
+        "page": "pages/uy_realtime.py",
+        "img": "https://drive.google.com/thumbnail?id=14Z3deszPh7YhRZib5P-zllCHNLpM02Ae&sz=w2000"
+    },
 ]
 
 cols = st.columns(2, gap="xsmall")

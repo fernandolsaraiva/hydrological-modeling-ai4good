@@ -23,38 +23,31 @@ from src.scripts.preprocess import fill_missing_values_horizontal
 from src.scripts.time_delay_embedding import time_delay_embedding_df
 from src.scripts.utils import load_data
 from util import get_station_code_flu, get_station_names_and_critical_levels
+from utils.translations import translations
 
 render_menu()
 
-# Language selection
-lang = st.sidebar.selectbox("Language", ["Portuguese", "English"])
+lang = st.session_state.get("lang", "Português")  # Default to Portuguese if not set
 
-translations = {
-   "Portuguese": {"title": "Dados Históricos e Previsões", 
+translations2 = {
+   "Português": {"title": "Dados Históricos e Previsões", 
                   "page_title": "Sistema de Alerta de Inundações",
-                  "select_station": "Selecione a Estação",
-                  "select_start_date": "Selecione a Data de Início",
-                  "select_end_date": "Selecione a Data de Término",
-                  "select_horizon": "Selecione o Horizonte",
-                  "plot": "Plotar Gráfico"
    },
     "English": {"title": "Historical Data and Predictions",
                 "page_title": "Flood Alert System",
-                "select_station": "Select Station",
-                "select_start_date": "Select Start Date",
-                "select_end_date": "Select End Date",
-                "select_horizon": "Select Horizon",
-                "plot": "Plot Graph"
+    },
+    "Español": {"title": "Datos Históricos y Predicciones",
+                "page_title": "Sistema de Alerta de Inundaciones"
     }
 }
 
 st.set_page_config(
-    page_title=translations[lang]["page_title"],
+    page_title=translations2[lang]["page_title"],
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-st.title(translations[lang]["title"])
+st.title(translations2[lang]["title"])
 
 def plot_predictions(y_test, y_pred, timestamps, critical_levels):
     y_test_m = [value / 100 for value in y_test]
@@ -113,7 +106,7 @@ if __name__ == "__main__":
     selected_index = station_names.index(station_name)
     selected_critical_level = critical_levels[selected_index]
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns([2, 2, 1])  
 
     with col1:
         start_time = st.date_input(translations[lang]["select_start_date"], value=pd.to_datetime('today').date() - timedelta(days=7))
@@ -121,10 +114,11 @@ if __name__ == "__main__":
     with col2:
         end_time = st.date_input(translations[lang]["select_end_date"], value=pd.to_datetime('today').date())
 
+    with col3:
+        horizon = st.selectbox(translations[lang]["select_horizon"], list(range(5, 30)), index=5)
+
     start_time = pd.to_datetime(start_time)
     end_time = pd.to_datetime(end_time)+timedelta(days=1)
-
-    horizon = st.selectbox(translations[lang]["select_horizon"], list(range(1, 13)), index=3)
 
     if st.button(translations[lang]["plot"]):
         station_code = get_station_code_flu(station_name)

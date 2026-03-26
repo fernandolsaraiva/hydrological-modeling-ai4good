@@ -1,14 +1,13 @@
 import streamlit as st
 from utils.menu import render_menu
 from PIL import Image
+from utils.translations import translations
 
 render_menu()
 
-# Language selection
-lang = st.sidebar.selectbox("Language", ["Portuguese", "English"])
 
 translations = {
-   "Portuguese": {"title": "Sobre Nós", 
+   "Português": {"title": "Sobre Nós", 
                     "body1": "Nosso projeto apresenta a primeira ferramenta operacional para previsão de alagamentos urbanos utilizando Inteligência Artificial explicável. Utilizamos exclusivamente ferramentas open source, com execução em tempo real, uma interface amigável e uma abordagem escalável.",
                     "body2": "Contamos com o apoio da Conferência AI4Good Brasil para impulsionar nossa plataforma e ampliar cada vez mais o nosso impacto.",
                     "teamtext": "Conheça nossa equipe",
@@ -23,8 +22,18 @@ translations = {
                 "Fernando": "Fernando Saraiva holds a Bachelor's degree in Electronic Engineering from the Aeronautics Institute of Technology (ITA) and is pursuing a Master's degree in Computer Science with a focus on Machine Learning at the Federal University of São Paulo (Unifesp). He works as a data scientist specializing in artificial intelligence applications in renewable energy.",
                 "Luan": "Luan Baraúna holds a Bachelor's and Master's in Physics from the Federal University of Bahia (UFBA), and a Ph.D. in Applied Computing from the National Institute for Space Research (INPE), where he specialized in Artificial Intelligence (AI), developing a neural network for detecting patterns in the Fourier space.",
                 "Leonardo": "Leonardo Santos is a Titular Researcher in Computational Modeling at CEMADEN-MCTI, a permanent professor in INPE's Applied Computing Graduate Program, and a collaborating professor in UNIFESP's Computer Science Graduate Program. Santos has a bachelor's in Physics from UFBA, a master's and PhD from INPE, and was a Visiting Professor at the Physics department at Humboldt University (Berlin).",
-                "Elton": "Elton Escobar possui graduação em Ciências Ambientais pela Universidade Federal de São Paulo (UNIFESP), mestrado em Ciências Ambientais pela Universidade Federal de São Carlos (UFSCar) e doutorado em Sensoriamento Remoto pelo Instituto Nacional de Pesquisas Espaciais (INPE). Atua nas áreas de geoinformática, sensoriamento remoto, planejamento urbano, modelagem hidrodinâmica, alagamentos urbanos, sistemas de alerta precoce de cheias (FEWS) e mudanças climáticas e segurança hídrica. Atualmente, é pesquisador de pós-doutorado no Cemaden."}
+                "Elton": "Elton Escobar possui graduação em Ciências Ambientais pela Universidade Federal de São Paulo (UNIFESP), mestrado em Ciências Ambientais pela Universidade Federal de São Carlos (UFSCar) e doutorado em Sensoriamento Remoto pelo Instituto Nacional de Pesquisas Espaciais (INPE). Atua nas áreas de geoinformática, sensoriamento remoto, planejamento urbano, modelagem hidrodinâmica, alagamentos urbanos, sistemas de alerta precoce de cheias (FEWS) e mudanças climáticas e segurança hídrica. Atualmente, é pesquisador de pós-doutorado no Cemaden."},
+    "Español": {"title": "Sobre Nosotros",
+                "body1": "Nuestro proyecto presenta la primera herramienta operativa para predecir inundaciones urbanas utilizando Inteligencia Artificial explicable. Utilizamos exclusivamente herramientas de código abierto, con ejecución en tiempo real, una interfaz fácil de usar y un enfoque escalable.",
+                "body2": "Contamos con el apoyo de la Conferencia AI4Good Brasil para impulsar nuestra plataforma y ampliar cada vez más nuestro impacto.",
+                "teamtext": "Conoce a Nuestro Equipo",
+                "Fernando": "Fernando Saraiva tiene una licenciatura en Ingeniería Electrónica del Instituto Tecnológico de Aeronáutica (ITA) y está cursando una maestría en Ciencias de la Computación con enfoque en Aprendizaje Automático en la Universidad Federal de São Paulo (Unifesp). Trabaja como científico de datos, especializado en aplicaciones de inteligencia artificial en energía renovable.",
+                "Luan": "Luan Baraúna tiene una licenciatura y maestría en Física de la Universidad Federal de Bahía (UFBA) y un doctorado en Computación Aplicada del Instituto Nacional de Investigaciones Espaciales (INPE), donde se especializó en Inteligencia Artificial (IA), desarrollando una red neuronal para detectar patrones en el espacio de Fourier.",
+                "Leonardo": "Leonardo Santos es Investigador Titular en Modelado Computacional en CEMADEN-MCTI, profesor permanente del Programa de Posgrado en Computación Aplicada de INPE y profesor colaborador del Programa de Posgrado en Ciencias de la Computación de UNIFESP. Santos tiene una licenciatura en Física de UFBA, una maestría y un doctorado de INPE, y fue Profesor Visitante en el departamento de Física de la Universidad Humboldt (Berlín).",
+                "Elton": "Elton Escobar tiene una licenciatura en Ciencias Ambientales de la Universidad Federal de São Paulo (UNIFESP), una maestría en Ciencias Ambientales de la Universidad Federal de São Carlos (UFSCar) y un doctorado en Teledetección del Instituto Nacional de Investigaciones Espaciales (INPE). Trabaja en los campos de geoinformática, teledetección, planificación urbana, modelado hidrodinámico, inundaciones urbanas, sistemas de alerta temprana de inundaciones (FEWS) y cambio climático y seguridad hídrica. Actualmente, es investigador postdoctoral en Cemaden."}                
 }
+
+lang = st.session_state.get("lang", "Português")  # Default to Portuguese if not set
 
 st.set_page_config(
     page_title="Floodcasting XAI Alert System",
