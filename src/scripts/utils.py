@@ -54,5 +54,6 @@ def load_fluviometric_data(start_time, end_time, station_names=['Rio Tamanduate√
 def load_data(start_time, end_time, station_name_flu=['Rio Tamanduate√≠ - Mercado Municipal']):
     df_plu = load_pluviometric_data(start_time, end_time)
     df_flu = load_fluviometric_data(start_time, end_time, station_name_flu)
+
     df_combined = pd.merge(df_plu, df_flu, on='timestamp', how='outer')
     return df_combined
