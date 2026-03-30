@@ -41,7 +41,7 @@ def render_menu():
     st.sidebar.page_link("Home.py", label=t["home"], icon="🏠")
 
     # Expander por cidade
-    for city_key in ["sp", "rj", "py", "uy"]:
+    for city_key in ["sp", "nf", "py", "uy"]:
         with st.sidebar.expander(t[city_key]):
             st.page_link(f"pages/{city_key}_realtime.py", label=t["realtime"])
             st.page_link(f"pages/{city_key}_history.py", label=t["history"])
