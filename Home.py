@@ -44,12 +44,12 @@ cards_data = [
     {
         "title": "São Paulo",
         "page": "pages/sp_realtime.py",
-        "img": "https://drive.google.com/thumbnail?id=15OHv2DW00K18LV5QF8nQduOygrtef4c-&sz=w2000"
+        "img": "https://drive.google.com/thumbnail?id=1l7MHwN6cAea-SiCy-L92xYFWViav6adE&sz=w2000"
     },
     {
-        "title": "Rio de Janeiro",
-        "page": "pages/rj_realtime.py",
-        "img": "https://drive.google.com/thumbnail?id=1tZSCPheUBNzh5HLfb9heFVulKfFbkY9f&sz=w2000"
+        "title": "Nova Friburgo",
+        "page": "pages/nf_realtime.py",
+        "img": "https://drive.google.com/thumbnail?id=1w03b1YyuguwZGAvyGsLcvgiObR0pKxyi&sz=w2000"
     },
     {
         "title": "Paraguai",
