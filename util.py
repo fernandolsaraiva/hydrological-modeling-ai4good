@@ -19,6 +19,8 @@ def get_station_data_flu(station_name, start_date, end_date, aggregation):
     AND ts.timestamp <= '{end_date}'
     """
     df = pd.read_sql(query, conn)
+    df.columns = df.columns.str.lower()
+    df.rename(columns={'datahora': 'timestamp', 'datetime': 'timestamp'}, inplace=True)
     conn.close()
 
     df = df[['timestamp', 'value','station']]
@@ -27,7 +29,7 @@ def get_station_data_flu(station_name, start_date, end_date, aggregation):
     station_code = get_station_code_flu(station_name)
     df = df.drop(columns=['station'])
     if aggregation == '10-minute':
-        df = df.resample('10T').mean().reset_index()
+        df = df.resample('10min').mean().reset_index()
     elif aggregation == 'Hourly':
         df = df.resample('H').mean().reset_index()
     elif aggregation == 'Daily':
@@ -48,6 +50,8 @@ def get_station_data_plu(station_name, start_date, end_date, aggregation = '10-m
     AND ts.timestamp <= '{end_date}'
     """
     df = pd.read_sql(query, conn)
+    df.columns = df.columns.str.lower()
+    df.rename(columns={'datahora': 'timestamp', 'datetime': 'timestamp'}, inplace=True)
     conn.close()
 
     df = df[['timestamp', 'value','station']]
@@ -80,6 +84,8 @@ def get_multiple_station_data_plu(station_names, start_date, end_date, aggregati
     """
     
     df = pd.read_sql(query, conn)
+    df.columns = df.columns.str.lower()
+    df.rename(columns={'datahora': 'timestamp', 'datetime': 'timestamp'}, inplace=True)
     conn.close()
     
     # Processar os dados
@@ -126,6 +132,8 @@ def get_station_names_plu():
     conn = psycopg2.connect(DATABASE_URL)
     query = "SELECT * FROM station.station_plu"
     df = pd.read_sql(query, conn)
+    df.columns = df.columns.str.lower()
+    df.rename(columns={'datahora': 'timestamp', 'datetime': 'timestamp'}, inplace=True)
     conn.close()
     return df['name'].tolist()
 
@@ -135,6 +143,8 @@ def get_station_names():
     conn = psycopg2.connect(DATABASE_URL)
     query = "SELECT * FROM station.station_flu"
     df = pd.read_sql(query, conn)
+    df.columns = df.columns.str.lower()
+    df.rename(columns={'datahora': 'timestamp', 'datetime': 'timestamp'}, inplace=True)
     conn.close()
     return df['name'].tolist()
 
@@ -143,6 +153,8 @@ def get_station_names_and_critical_levels():
     conn = psycopg2.connect(DATABASE_URL)
     query = "SELECT name, critical_levels FROM station.station_flu"
     df = pd.read_sql(query, conn)
+    df.columns = df.columns.str.lower()
+    df.rename(columns={'datahora': 'timestamp', 'datetime': 'timestamp'}, inplace=True)
     conn.close()
     station_names = df['name'].tolist()
     critical_levels = df['critical_levels'].tolist()
