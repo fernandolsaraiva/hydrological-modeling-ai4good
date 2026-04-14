@@ -10,8 +10,10 @@ import pandas as pd
 import psycopg2
 import pytz
 import requests
+from dotenv import load_dotenv
 
-
+load_dotenv()
+    
 def getJson(url):
     s = requests.Session()
     s.get(url)
@@ -32,7 +34,8 @@ def getDataStation(date, station=33767, interval=1):
     year_end = date_end.strftime("%Y")
     month_end = date_end.strftime("%m")
     day_end = date_end.strftime("%d")
-    url_newest = f"https://cth.daee.sp.gov.br/sibh/api/v1/measurements/grouped?format=csv&start_date={year_start}-{month_start}-{day_start}%2003%3A00&end_date={year_end}-{month_end}-{day_end}%2002%3A59&group_type=none&transmission_type_ids%5B%5D=1&transmission_type_ids%5B%5D=2&transmission_type_ids%5B%5D=3&transmission_type_ids%5B%5D=4&transmission_type_ids%5B%5D=5&transmission_type_ids%5B%5D=6&station_prefix_ids%5B%5D={station}"
+    # url_newest = f"https://cth.daee.sp.gov.br/sibh/api/v2/measurements/grouped?format=csv&start_date={year_start}-{month_start}-{day_start}%2003%3A00&end_date={year_end}-{month_end}-{day_end}%2002%3A59&group_type=none&transmission_type_ids%5B%5D=1&transmission_type_ids%5B%5D=2&transmission_type_ids%5B%5D=3&transmission_type_ids%5B%5D=4&transmission_type_ids%5B%5D=5&transmission_type_ids%5B%5D=6&station_prefix_ids%5B%5D={station}"
+    url_newest = f"https://cth.daee.sp.gov.br/sibh/api/v2/measurements?format=json&start_date={year_start}-{month_start}-{day_start}%2003%3A00&end_date={year_end}-{month_end}-{day_end}%2002%3A59&group_type=minute&station_prefix_ids%5B%5D=={station}"
     json_value = getJson(url_newest)
     json_value_transformed = StringIO(json_value)
     df = pd.read_csv(json_value_transformed, delimiter=";")
@@ -66,6 +69,7 @@ def upsertData(df, table="timeseries.data_station_flu"):
 def downloadDataAndUpsertMultipleStations(stations_flu, stations_plu):
     # Get the date of the last data in the database
     DATABASE_URL = os.getenv("DATABASE_URL")
+    print(f"Connecting to database at {DATABASE_URL}...")
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute("SELECT MAX(timestamp) FROM timeseries.data_station_flu")

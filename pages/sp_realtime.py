@@ -29,14 +29,17 @@ lang = st.session_state.get("lang", "Português")  # Default to Portuguese if no
 
 translations2 = {
    "Português": {"title": "Painel de Previsão Hidrológica", 
-                  "page_title": "Sistema de Alerta de Alagamentos"
+                  "page_title": "Sistema de Alerta de Alagamentos",
+                  "explicability_chart_title": "Impacto das Características na Previsão"
    },
     "English": {"title": "Hydrological Forecasting Dashboard", 
                "page_title": "Flood Alert System",
+               "explicability_chart_title": "Feature Impact on Prediction"
     },
     "Español": {"title": "Panel de Pronóstico Hidrológico",
-                "page_title": "Sistema de Alerta de Inundaciones"
-    }
+                "page_title": "Sistema de Alerta de Inundaciones",
+                "explicability_chart_title": "Impacto de las Características en la Predicción"
+}
 }
 
 st.set_page_config(
@@ -46,6 +49,15 @@ st.set_page_config(
 )
 
 st.title(translations2[lang]["title"])
+
+st.divider()
+
+PRIMARY_COLOR = "#1f77b4"
+SECONDARY_COLOR = "#ff7f0e"
+DANGER_COLOR = "#d62728"
+BACKGROUND_COLOR = "#ffffff"
+GRID_COLOR = "#e5e5e5"
+FONT_FAMILY = "Arial"
 
 # --- Função de plotagem ---
 def plot_river_level(data, station_name, last_available_date, critical_levels, prediction_data=None, option="current"):
@@ -85,7 +97,14 @@ def plot_river_level(data, station_name, last_available_date, critical_levels, p
     min_timestamp = all_timestamps.min()
     max_timestamp = all_timestamps.max()
 
-    critical_colors = {"ALERT": "green", "WARNING": "orange", "EMERGENCY": "purple", "OVERFLOW": "pink"}
+    # critical_colors = {"ALERT": "green", "WARNING": "orange", "EMERGENCY": "purple", "OVERFLOW": "pink"}
+    critical_colors = {
+        "ALERT": "#2ca02c",     # verde
+        "WARNING": "#ff7f0e",   # laranja
+        "EMERGENCY": "#d62728", # vermelho
+        "OVERFLOW": "#9467bd"   # roxo (ok manter)
+    }
+
     color_translations = {"ALERTA": "ALERT", "ATENÇÃO": "WARNING", "EMERGENCIA": "EMERGENCY", "EXTRAVAZAMENTO": "OVERFLOW"}
     
     for level, value in critical_levels.items():
@@ -93,6 +112,29 @@ def plot_river_level(data, station_name, last_available_date, critical_levels, p
         fig.add_scatter(x=[min_timestamp, max_timestamp], y=[value, value], mode='lines', line=dict(color=critical_colors[translated_level], dash='dash'), name=translated_level)
 
     fig.update_yaxes(title_text=translations[lang]["river_level"] + ' (m)')
+
+    fig.update_layout(
+        template="simple_white",
+        font=dict(family=FONT_FAMILY, size=14),
+        plot_bgcolor=BACKGROUND_COLOR,
+        paper_bgcolor=BACKGROUND_COLOR,
+        xaxis=dict(
+            showgrid=True,
+            gridcolor=GRID_COLOR
+        ),
+        yaxis=dict(
+            showgrid=True,
+            gridcolor=GRID_COLOR
+        ),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        )
+    )   
+
     return fig
 
 
@@ -133,6 +175,23 @@ if option == "past":
     utc_datetime = localized_datetime.astimezone(pytz.utc)
     formatted_datetime = utc_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] + ' +0000'
 
+@st.cache_resource
+def load_models(station_code):
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    return load_all_models_from_db(station_code, DATABASE_URL)
+
+@st.cache_data
+def load_base_data(start_time, end_time):
+    return load_data(start_time, end_time)
+
+@st.cache_data
+def compute_embedding(df, station_target):
+    n_lags = 6
+    horizon = 0
+    embedded_df = time_delay_embedding_df(df, n_lags, horizon, station_target=station_target)
+    embedded_df = fill_missing_values_horizontal(embedded_df, 'plu_', n_lags)
+    embedded_df = fill_missing_values_horizontal(embedded_df, 'flu_', n_lags)
+    return embedded_df
 
 # --- Botão de Plot ---
 if st.button(translations[lang]["plot"]):
@@ -143,20 +202,18 @@ if st.button(translations[lang]["plot"]):
         start_time = end_time - pd.Timedelta(hours=2)
         start_time_visualization = end_time - pd.Timedelta(hours=12)
         
-        df = load_data(start_time, end_time)
+        # df = load_data(start_time, end_time)
+        df = load_base_data(start_time, end_time)
         df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_convert('America/Sao_Paulo')
         df = df.sort_values(by='timestamp', ascending=False).head(7)
         df.set_index('timestamp', inplace=True)
         
-        n_lags = 6
-        horizon = 0
         station_target = station_code
-        embedded_df = time_delay_embedding_df(df, n_lags, horizon, station_target=station_target)
-        embedded_df = fill_missing_values_horizontal(embedded_df, 'plu_', n_lags)
-        embedded_df = fill_missing_values_horizontal(embedded_df, 'flu_', n_lags)
+        embedded_df = compute_embedding(df, station_target)
         
-        DATABASE_URL = os.getenv("DATABASE_URL")
-        models_data = load_all_models_from_db(station_code, DATABASE_URL)
+        # DATABASE_URL = os.getenv("DATABASE_URL")
+        # models_data = load_all_models_from_db(station_code, DATABASE_URL)
+        models_data = load_models(station_code)
         
         # Predictions
         predictions, upper_bounds, lower_bounds = [], [], []
@@ -194,18 +251,67 @@ if st.button(translations[lang]["plot"]):
         
         with tab1:
             st.plotly_chart(fig1, use_container_width=True)
-        
+
         with tab2:
-            st.header(translations[lang]["explainability_analysis"])
+            # st.header(translations[lang]["explainability_analysis"])
+
+            plt.close('all')  # importante pra evitar sobreposição
+
+            # 🎨 Estilo global (antes do plot)
+            plt.style.use("default")
+            plt.rcParams.update({
+                "figure.facecolor": BACKGROUND_COLOR,
+                "axes.facecolor": BACKGROUND_COLOR,
+                "axes.edgecolor": GRID_COLOR,
+                "axes.labelcolor": "#333",
+                "xtick.color": "#333",
+                "ytick.color": "#333",
+                "font.family": FONT_FAMILY,
+                "font.size": 12,
+                "axes.titlesize": 16,
+                "axes.labelsize": 12,
+                "xtick.labelsize": 11,
+                "ytick.labelsize": 11,
+                "grid.color": GRID_COLOR,
+                "grid.linestyle": "--",
+                "grid.alpha": 0.4
+            })
+
             explainer = shap.TreeExplainer(selected_model)
-            shap_values = explainer.shap_values(dmatrix)
-            shap.initjs()
+            dmatrix_single = xgb.DMatrix(embedded_df.iloc[:1])
+            shap_values = explainer.shap_values(dmatrix_single)
+
             shap.waterfall_plot(
                 shap.Explanation(
                     values=shap_values[0],
                     base_values=explainer.expected_value,
                     data=embedded_df.iloc[0]
                 ),
-                show=False, max_display=10
+                show=False,
+                max_display=10
             )
-            st.pyplot(plt.gcf())
+
+            # 🎯 Ajustes finos pós-plot (SHAP ignora parte do rcParams)
+            fig = plt.gcf()
+            fig.set_size_inches(12, 6)  # mais próximo do plotly
+
+            ax = plt.gca()
+
+            # Grid mais parecido com Plotly
+            ax.grid(True)
+
+            # Remove bordas superiores/direita (clean style)
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+
+            # Ajuste de cores das barras (opcional mas melhora muito)
+            for bar in ax.patches:
+                if bar.get_width() > 0:
+                    bar.set_color(SECONDARY_COLOR)  # positivo
+                else:
+                    bar.set_color(PRIMARY_COLOR)    # negativo
+
+            plt.title(translations2[lang]["explicability_chart_title"], fontsize=16)
+            plt.tight_layout()
+
+            st.pyplot(fig)
