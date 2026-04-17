@@ -114,17 +114,26 @@ def plot_river_level(data, station_name, last_available_date, critical_levels, p
     fig.update_yaxes(title_text=translations[lang]["river_level"] + ' (m)')
 
     fig.update_layout(
+        margin=dict(t=100),  # aumenta espaço no topo,
         template="simple_white",
-        font=dict(family=FONT_FAMILY, size=14),
-        plot_bgcolor=BACKGROUND_COLOR,
-        paper_bgcolor=BACKGROUND_COLOR,
+        font=dict(family="Arial", size=14),
+        plot_bgcolor="#ffffff",
+        paper_bgcolor="#ffffff",
+        height=600,
+        title=dict(
+            x=0.5,
+            xanchor="center",
+            font=dict(size=20)
+        ),
         xaxis=dict(
+            title=translations[lang]["timestamp"],
             showgrid=True,
-            gridcolor=GRID_COLOR
+            gridcolor="#e5e5e5"
         ),
         yaxis=dict(
+            title=translations[lang]["river_level"],
             showgrid=True,
-            gridcolor=GRID_COLOR
+            gridcolor="#e5e5e5"
         ),
         legend=dict(
             orientation="h",
@@ -133,7 +142,7 @@ def plot_river_level(data, station_name, last_available_date, critical_levels, p
             xanchor="right",
             x=1
         )
-    )   
+    )
 
     return fig
 
@@ -218,7 +227,10 @@ if st.button(translations[lang]["plot"]):
         # Predictions
         predictions, upper_bounds, lower_bounds = [], [], []
         for horizon_i, model, parameters, period, rmse in models_data:
-            dmatrix = xgb.DMatrix(embedded_df)
+            feature_cols = sorted(embedded_df.columns)
+            # print(f"Features usadas no modelo: {feature_cols}")
+            # dmatrix = xgb.DMatrix(embedded_df)
+            dmatrix = xgb.DMatrix(embedded_df[feature_cols])
             prediction = model.predict(dmatrix)
             predictions.append(prediction[0])
             upper_bounds.append(prediction[0] + 1.96*rmse['test'])
@@ -247,17 +259,15 @@ if st.button(translations[lang]["plot"]):
         )
         
         # Tabs
-        tab1, tab2 = st.tabs([translations[lang]["forecast"], translations[lang]["explainability"]])
+        tab1, tab2  = st.tabs([translations[lang]["forecast"], translations[lang]["explainability"]])
         
         with tab1:
             st.plotly_chart(fig1, use_container_width=True)
 
         with tab2:
-            # st.header(translations[lang]["explainability_analysis"])
+            plt.close('all')
 
-            plt.close('all')  # importante pra evitar sobreposição
-
-            # 🎨 Estilo global (antes do plot)
+            # 🎨 Estilo global
             plt.style.use("default")
             plt.rcParams.update({
                 "figure.facecolor": BACKGROUND_COLOR,
@@ -277,39 +287,48 @@ if st.button(translations[lang]["plot"]):
                 "grid.alpha": 0.4
             })
 
+            # ⚙️ SHAP (AGORA COM DATASET INTEIRO)
             explainer = shap.TreeExplainer(selected_model)
-            dmatrix_single = xgb.DMatrix(embedded_df.iloc[:1])
-            shap_values = explainer.shap_values(dmatrix_single)
+            dmatrix_all = xgb.DMatrix(embedded_df)
+            shap_values = explainer.shap_values(dmatrix_all)
 
-            shap.waterfall_plot(
-                shap.Explanation(
-                    values=shap_values[0],
-                    base_values=explainer.expected_value,
-                    data=embedded_df.iloc[0]
-                ),
-                show=False,
-                max_display=10
+            # 📊 Summary bar plot (média global)
+            shap.summary_plot(
+                shap_values,
+                embedded_df,
+                plot_type="bar",
+                max_display=10,
+                show=False
             )
 
-            # 🎯 Ajustes finos pós-plot (SHAP ignora parte do rcParams)
+            # 🎯 Ajustes pós-plot
             fig = plt.gcf()
-            fig.set_size_inches(12, 6)  # mais próximo do plotly
+            fig.set_size_inches(12, 6)
 
             ax = plt.gca()
-
-            # Grid mais parecido com Plotly
             ax.grid(True)
 
-            # Remove bordas superiores/direita (clean style)
+            # Remove bordas
             ax.spines['top'].set_visible(False)
             ax.spines['right'].set_visible(False)
 
-            # Ajuste de cores das barras (opcional mas melhora muito)
+            # 🎨 Cor das barras (agora tudo positivo → uma cor só)
             for bar in ax.patches:
-                if bar.get_width() > 0:
-                    bar.set_color(SECONDARY_COLOR)  # positivo
-                else:
-                    bar.set_color(PRIMARY_COLOR)    # negativo
+                bar.set_color(SECONDARY_COLOR)
+
+            # ➕ Adiciona valores (média |SHAP|)
+            max_width = max([p.get_width() for p in ax.patches])
+
+            for bar in ax.patches:
+                width = bar.get_width()
+                ax.text(
+                    width + max_width * 0.01,
+                    bar.get_y() + bar.get_height() / 2,
+                    f"{width:.3f}",
+                    va="center",
+                    ha="left",
+                    fontsize=10
+                )
 
             plt.title(translations2[lang]["explicability_chart_title"], fontsize=16)
             plt.tight_layout()
