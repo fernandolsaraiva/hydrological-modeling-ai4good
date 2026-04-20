@@ -1,5 +1,8 @@
 import streamlit as st
 from utils.menu import render_menu
+import plotly.graph_objects as go
+from datetime import datetime
+import pytz
 
 # st.title("São Paulo — Previsão em tempo real")
 
@@ -27,17 +30,28 @@ from utils.translations import translations
 
 render_menu()
 
+PRIMARY_COLOR = "#1f77b4"
+SECONDARY_COLOR = "#ff7f0e"
+DANGER_COLOR = "#d62728"
+BACKGROUND_COLOR = "#ffffff"
+GRID_COLOR = "#e5e5e5"
+FONT_FAMILY = "Arial"
+
 lang = st.session_state.get("lang", "Português")  # Default to Portuguese if not set
 
 translations2 = {
    "Português": {"title": "Dados Históricos e Previsões", 
                   "page_title": "Sistema de Alerta de Inundações",
+                  "explicability_chart_title": "Impacto das Características na Predição"
+                  
    },
     "English": {"title": "Historical Data and Predictions",
                 "page_title": "Flood Alert System",
+                "explicability_chart_title": "Impact of Features on Prediction"
     },
     "Español": {"title": "Datos Históricos y Predicciones",
-                "page_title": "Sistema de Alerta de Inundaciones"
+                "page_title": "Sistema de Alerta de Inundaciones",
+                "explicability_chart_title": "Impacto de las Características en la Predicción"
     }
 }
 
@@ -49,49 +63,157 @@ st.set_page_config(
 
 st.title(translations2[lang]["title"])
 
-def plot_predictions(y_test, y_pred, timestamps, critical_levels):
+# def plot_predictions(y_test, y_pred, timestamps, critical_levels):
+#     y_test_m = [value / 100 for value in y_test]
+#     y_pred_m = [value / 100 for value in y_pred]
+
+#     fig = go.Figure()
+
+#     # Add actual values line
+#     fig.add_trace(go.Scatter(x=timestamps, y=y_test_m, mode='lines+markers', name='Actual Values', line=dict(color='blue')))
+
+#     fig.add_trace(go.Scatter(x=timestamps, y=y_pred_m, mode='lines+markers', name='Predicted Values', line=dict(color='orange')))
+    
+#     # Add horizontal lines for critical levels with labels
+#     critical_colors = {
+#         "ALERT": "green",
+#         "WARNING": "orange",
+#         "EMERGENCY": "purple",
+#         "OVERFLOW": "pink"
+#     }
+    
+#     critical_colors_translations = {
+#         "ALERTA": "ALERT",
+#         "ATENÇÃO": "WARNING",
+#         "EMERGENCIA": "EMERGENCY",
+#         "EXTRAVAZAMENTO": "OVERFLOW"
+#     }
+    
+#     min_timestamp = min(timestamps)
+#     max_timestamp = max(timestamps)
+    
+#     for level, value in critical_levels.items():
+#         translated_level = critical_colors_translations[level]
+#         fig.add_scatter(x=[min_timestamp, max_timestamp], y=[value, value], mode='lines', line=dict(color=critical_colors[translated_level], dash='dash'), name=translated_level)
+    
+
+#     fig.update_layout(
+#         title='Comparison between Actual and Predicted Values',
+#         xaxis_title='Timestamp',
+#         yaxis_title='River level (m)',
+#         legend=dict(x=0, y=1),
+#         margin=dict(l=0, r=0, t=30, b=0), 
+#         height=600
+#     )
+#     return fig
+
+def plot_predictions(y_test, y_pred, timestamps, critical_levels, station_name, option="current", last_available_date=None):
     y_test_m = [value / 100 for value in y_test]
     y_pred_m = [value / 100 for value in y_pred]
 
     fig = go.Figure()
 
-    # Add actual values line
-    fig.add_trace(go.Scatter(x=timestamps, y=y_test_m, mode='lines+markers', name='Actual Values', line=dict(color='blue')))
+    # 🔵 Observed (igual gráfico 1)
+    fig.add_trace(go.Scatter(
+        x=timestamps,
+        y=y_test_m,
+        mode='lines+markers',
+        name=translations[lang]["observed"],
+        line=dict(color='blue'),
+        marker=dict(size=5)
+    ))
 
-    fig.add_trace(go.Scatter(x=timestamps, y=y_pred_m, mode='lines+markers', name='Predicted Values', line=dict(color='orange')))
-    
-    # Add horizontal lines for critical levels with labels
+    # 🟠 Forecast (igual gráfico 1)
+    fig.add_trace(go.Scatter(
+        x=timestamps,
+        y=y_pred_m,
+        mode='lines+markers',
+        name=translations[lang]["forecast"],
+        line=dict(color='orange'),
+        marker=dict(size=5)
+    ))
+
+    # 📌 Critical levels (igual gráfico 1)
     critical_colors = {
-        "ALERT": "green",
-        "WARNING": "orange",
-        "EMERGENCY": "purple",
-        "OVERFLOW": "pink"
+        "ALERT": "#2ca02c",
+        "WARNING": "#ff7f0e",
+        "EMERGENCY": "#d62728",
+        "OVERFLOW": "#9467bd"
     }
-    
+
     critical_colors_translations = {
         "ALERTA": "ALERT",
         "ATENÇÃO": "WARNING",
         "EMERGENCIA": "EMERGENCY",
         "EXTRAVAZAMENTO": "OVERFLOW"
     }
-    
+
     min_timestamp = min(timestamps)
     max_timestamp = max(timestamps)
-    
+
     for level, value in critical_levels.items():
         translated_level = critical_colors_translations[level]
-        fig.add_scatter(x=[min_timestamp, max_timestamp], y=[value, value], mode='lines', line=dict(color=critical_colors[translated_level], dash='dash'), name=translated_level)
-    
 
+        fig.add_trace(go.Scatter(
+            x=[min_timestamp, max_timestamp],
+            y=[value, value],
+            mode='lines',
+            line=dict(color=critical_colors[translated_level], dash='dash'),
+            name=translated_level
+        ))
+
+    river_level_title = translations[lang]["river_level"] + f' - {station_name}'
+
+    fig.update_layout(title={'text': river_level_title , 'x': 0.5, 'xanchor': 'center','font': {'size': 20}}, height=600)
+
+    # 🧠 Layout igual gráfico 1
     fig.update_layout(
-        title='Comparison between Actual and Predicted Values',
-        xaxis_title='Timestamp',
-        yaxis_title='River level (m)',
-        legend=dict(x=0, y=1),
-        margin=dict(l=0, r=0, t=30, b=0), 
-        height=600
+        template="simple_white",
+        font=dict(family="Arial", size=14),
+        plot_bgcolor="#ffffff",
+        paper_bgcolor="#ffffff",
+        height=600,
+        title=dict(
+            # text="Comparison between Actual and Predicted Values",
+
+            x=0.5,
+            xanchor="center",
+            font=dict(size=20)
+        ),
+        xaxis=dict(
+            title=translations[lang]["timestamp"],
+            showgrid=True,
+            gridcolor="#e5e5e5"
+        ),
+        yaxis=dict(
+            title=translations[lang]["river_level"],
+            showgrid=True,
+            gridcolor="#e5e5e5"
+        ),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        )
     )
-    st.plotly_chart(fig)
+
+    # ⏱️ Linha vertical (igual gráfico 1)
+    if option == "current" and last_available_date is not None:
+        current_time = datetime.now(pytz.timezone('America/Sao_Paulo'))
+    else:
+        current_time = last_available_date
+
+    if current_time is not None:
+        fig.add_vline(
+            x=current_time,
+            line_width=3,
+            line_dash="dash",
+            line_color="red"
+        )
+
+    return fig
 
 if __name__ == "__main__":
   
@@ -154,17 +276,80 @@ if __name__ == "__main__":
         rmse = np.sqrt(mean_squared_error(y_test_filtered, y_pred_filtered))
         st.write(f'RMSE: {rmse}')
 
-        plot_predictions(y_test_filtered, y_pred_filtered, adjusted_timestamps_filtered, critical_levels=selected_critical_level)
+        fig_pred = plot_predictions(y_test_filtered, y_pred_filtered, adjusted_timestamps_filtered, critical_levels=selected_critical_level, station_name=station_name, option="historical")
 
-        # Shap value analysis
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(d_test)
+        # Tabs
+        tab1, tab2 = st.tabs([translations[lang]["forecast"], translations[lang]["explainability"]])
+        
+        with tab1:
+            st.plotly_chart(fig_pred, use_container_width=True)
+        
+        with tab2:
 
-        shap.initjs()
-        fig, ax = plt.subplots()
-        shap.summary_plot(shap_values, X_test, plot_type="bar")
-        plt.tight_layout()
-        fig.savefig("shap_summary_plot.png", bbox_inches='tight')
-        st.image("shap_summary_plot.png")
-        plt.clf()
-        os.remove("shap_summary_plot.png")
+            plt.close("all")
+
+            # 🎨 Estilo global (igual ao dashboard principal)
+            plt.style.use("default")
+            plt.rcParams.update({
+                "figure.facecolor": BACKGROUND_COLOR,
+                "axes.facecolor": BACKGROUND_COLOR,
+                "axes.edgecolor": GRID_COLOR,
+                "axes.labelcolor": "#333",
+                "xtick.color": "#333",
+                "ytick.color": "#333",
+                "font.family": FONT_FAMILY,
+                "font.size": 12,
+                "axes.titlesize": 16,
+                "axes.labelsize": 12,
+                "xtick.labelsize": 11,
+                "ytick.labelsize": 11,
+                "grid.color": GRID_COLOR,
+                "grid.linestyle": "--",
+                "grid.alpha": 0.4
+            })
+
+            # ⚙️ SHAP
+            explainer = shap.TreeExplainer(model)
+
+            # Agora sim: dataset inteiro
+            d_all = xgb.DMatrix(X_test)
+            shap_values = explainer.shap_values(d_all)
+
+            # 📊 Summary bar plot (global)
+            shap.summary_plot(
+                shap_values,
+                X_test,
+                plot_type="bar",
+                show=False
+            )
+
+            fig = plt.gcf()
+            ax = plt.gca()
+
+            # 🎨 Cores
+            for bar in ax.patches:
+                bar.set_color(SECONDARY_COLOR)
+
+            # ➕ Adiciona valor em cada barra
+            for bar in ax.patches:
+                width = bar.get_width()
+                ax.text(
+                    width,                          # posição x (final da barra)
+                    bar.get_y() + bar.get_height()/2,  # posição y (centro da barra)
+                    f"{width:.3f}",                 # valor formatado
+                    va="center",
+                    ha="left",
+                    fontsize=10
+                )
+
+            # 🎯 Layout
+            fig.set_size_inches(12, 6)
+            ax.grid(True)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+
+            plt.title(translations2[lang]["explicability_chart_title"], fontsize=16)
+            plt.tight_layout()
+
+            st.pyplot(fig)
+        

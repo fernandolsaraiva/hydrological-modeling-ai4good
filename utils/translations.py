@@ -33,6 +33,7 @@ translations = {
         "select_end_date": "Selecione a Data de Término",
         "select_horizon": "Selecione o Horizonte",
         "plot": "Plotar Gráfico",
+        "timestamp": "Timestamp",
     },
     "English": {
         "home": "Home",
@@ -68,6 +69,7 @@ translations = {
         "select_end_date": "Select End Date",
         "select_horizon": "Select Horizon",
         "plot": "Plot Graph",
+        "timestamp": "Timestamp",
     },
     "Español": {
         "home": "Inicio",
@@ -103,5 +105,6 @@ translations = {
         "select_end_date": "Seleccionar fecha de fin",
         "select_horizon": "Seleccionar horizonte",
         "plot": "Graficar",
+        "timestamp": "Timestamp",
     },
 }
