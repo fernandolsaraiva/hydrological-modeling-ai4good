@@ -26,7 +26,15 @@ def load_model_from_db(station, horizon, db_url):
     cursor = conn.cursor()
     cursor.execute("SELECT model, parameters, period, rmse FROM prediction.model WHERE station = %s AND horizon = %s", (station, horizon))
     result = cursor.fetchone()
+    
+    # 🔒 1. tratar ausência de resultado
+    if result is None:
+        cursor.close()
+        conn.close()
+        return None, None, None, None
+
     model_binary = result[0]
+
     parameters = result[1] if isinstance(result[1], dict) else json.loads(result[1])
     period = result[2]
     rmse = result[3] if isinstance(result[3], dict) else json.loads(result[3])

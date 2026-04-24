@@ -34,6 +34,9 @@ translations = {
         "select_horizon": "Selecione o Horizonte",
         "plot": "Plotar Gráfico",
         "timestamp": "Timestamp",
+        "no_data_available":"Não há dados disponíveis para o período selecionado",
+        "no_forecast_possible":"Não foi possível gerar previsão com os dados disponíveis",
+        "no_models_available":"Não há modelos disponíveis para a estação selecionada",
     },
     "English": {
         "home": "Home",
@@ -70,6 +73,9 @@ translations = {
         "select_horizon": "Select Horizon",
         "plot": "Plot Graph",
         "timestamp": "Timestamp",
+        "no_data_available":"No data available for the selected period",
+        "no_forecast_possible":"Unable to generate forecast with the available data",
+        "no_models_available":"No models available for the selected station",
     },
     "Español": {
         "home": "Inicio",
@@ -106,5 +112,8 @@ translations = {
         "select_horizon": "Seleccionar horizonte",
         "plot": "Graficar",
         "timestamp": "Timestamp",
+        "no_data_available":"No hay datos disponibles para el período seleccionado",
+        "no_forecast_possible":"No fue posible generar pronóstico con los datos disponibles",
+        "no_models_available":"No hay modelos disponibles para la estación seleccionada",
     },
 }

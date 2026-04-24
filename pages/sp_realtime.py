@@ -213,124 +213,136 @@ if st.button(translations[lang]["plot"]):
         
         # df = load_data(start_time, end_time)
         df = load_base_data(start_time, end_time)
-        df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_convert('America/Sao_Paulo')
-        df = df.sort_values(by='timestamp', ascending=False).head(7)
-        df.set_index('timestamp', inplace=True)
-        
-        station_target = station_code
-        embedded_df = compute_embedding(df, station_target)
-        
-        # DATABASE_URL = os.getenv("DATABASE_URL")
-        # models_data = load_all_models_from_db(station_code, DATABASE_URL)
-        models_data = load_models(station_code)
-        
-        # Predictions
-        predictions, upper_bounds, lower_bounds = [], [], []
-        for horizon_i, model, parameters, period, rmse in models_data:
-            feature_cols = sorted(embedded_df.columns)
-            # print(f"Features usadas no modelo: {feature_cols}")
-            # dmatrix = xgb.DMatrix(embedded_df)
-            dmatrix = xgb.DMatrix(embedded_df[feature_cols])
-            prediction = model.predict(dmatrix)
-            predictions.append(prediction[0])
-            upper_bounds.append(prediction[0] + 1.96*rmse['test'])
-            lower_bounds.append(prediction[0] - 1.96*rmse['test'])
-            if horizon_i == selected_horizon:
-                selected_model = model
-        
-        prediction_timestamps = [end_time + pd.Timedelta(minutes=10*i) for i in range(1,13)]
-        prediction_df = pd.DataFrame({
-            'timestamp': prediction_timestamps,
-            'prediction': predictions,
-            'upper_bound': upper_bounds,
-            'lower_bound': lower_bounds
-        })
-        prediction_df['timestamp'] = prediction_df['timestamp'].dt.tz_convert('America/Sao_Paulo')
-        
-        data = get_station_data_flu(station_name, start_time_visualization, end_time, aggregation='10-minute')
-        data['timestamp'] = data['timestamp'].dt.tz_convert('America/Sao_Paulo')
-        
-        fig1 = plot_river_level(
-            data, station_name,
-            last_available_date=last_available_date,
-            critical_levels=selected_critical_level,
-            prediction_data=prediction_df,
-            option=option
-        )
-        
-        # Tabs
-        tab1, tab2  = st.tabs([translations[lang]["forecast"], translations[lang]["explainability"]])
-        
-        with tab1:
-            st.plotly_chart(fig1, use_container_width=True)
+        if df is None or df.empty:
+            st.warning(translations[lang]["no_data_available"])
+        else:
+            df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_convert('America/Sao_Paulo')
+            df = df.sort_values(by='timestamp', ascending=False).head(7)
+            df.set_index('timestamp', inplace=True)
+            
+            station_target = station_code
+            embedded_df = compute_embedding(df, station_target)
+            
+            # DATABASE_URL = os.getenv("DATABASE_URL")
+            # models_data = load_all_models_from_db(station_code, DATABASE_URL)
+            models_data = load_models(station_code)
 
-        with tab2:
-            plt.close('all')
+            # print(models_data)
+            if not models_data:
+                st.warning(translations[lang]["no_models_available"]+f"{station_name}")
+            else:
+                # Predictions
+                predictions, upper_bounds, lower_bounds = [], [], []
+                for horizon_i, model, parameters, period, rmse in models_data:
+                    feature_cols = sorted(embedded_df.columns)
+                    # print(f"Features usadas no modelo: {feature_cols}")
+                    # dmatrix = xgb.DMatrix(embedded_df)
+                    dmatrix = xgb.DMatrix(embedded_df[feature_cols])
+                    prediction = model.predict(dmatrix)
+                    predictions.append(prediction[0])
+                    upper_bounds.append(prediction[0] + 1.96*rmse['test'])
+                    lower_bounds.append(prediction[0] - 1.96*rmse['test'])
+                    if horizon_i == selected_horizon:
+                        selected_model = model
 
-            # 🎨 Estilo global
-            plt.style.use("default")
-            plt.rcParams.update({
-                "figure.facecolor": BACKGROUND_COLOR,
-                "axes.facecolor": BACKGROUND_COLOR,
-                "axes.edgecolor": GRID_COLOR,
-                "axes.labelcolor": "#333",
-                "xtick.color": "#333",
-                "ytick.color": "#333",
-                "font.family": FONT_FAMILY,
-                "font.size": 12,
-                "axes.titlesize": 16,
-                "axes.labelsize": 12,
-                "xtick.labelsize": 11,
-                "ytick.labelsize": 11,
-                "grid.color": GRID_COLOR,
-                "grid.linestyle": "--",
-                "grid.alpha": 0.4
-            })
+                if len(predictions) == 0:
+                    st.warning(translations[lang]["no_forecast_possible"])
+                else:
+                    prediction_timestamps = [end_time + pd.Timedelta(minutes=10*i) for i in range(1,13)]
+                    # print("timestamps:", len(prediction_timestamps))
+                    # print("predictions:", len(predictions))
+                    prediction_df = pd.DataFrame({
+                        'timestamp': prediction_timestamps,
+                        'prediction': predictions,
+                        'upper_bound': upper_bounds,
+                        'lower_bound': lower_bounds
+                    })
+                    prediction_df['timestamp'] = prediction_df['timestamp'].dt.tz_convert('America/Sao_Paulo')
+                    
+                    data = get_station_data_flu(station_name, start_time_visualization, end_time, aggregation='10-minute')
+                    data['timestamp'] = data['timestamp'].dt.tz_convert('America/Sao_Paulo')
+                    
+                    fig1 = plot_river_level(
+                        data, station_name,
+                        last_available_date=last_available_date,
+                        critical_levels=selected_critical_level,
+                        prediction_data=prediction_df,
+                        option=option
+                    )
+                    
+                    # Tabs
+                    tab1, tab2  = st.tabs([translations[lang]["forecast"], translations[lang]["explainability"]])
+                    
+                    with tab1:
+                        st.plotly_chart(fig1, use_container_width=True)
 
-            # ⚙️ SHAP (AGORA COM DATASET INTEIRO)
-            explainer = shap.TreeExplainer(selected_model)
-            dmatrix_all = xgb.DMatrix(embedded_df)
-            shap_values = explainer.shap_values(dmatrix_all)
+                    with tab2:
+                        plt.close('all')
 
-            # 📊 Summary bar plot (média global)
-            shap.summary_plot(
-                shap_values,
-                embedded_df,
-                plot_type="bar",
-                max_display=10,
-                show=False
-            )
+                        # 🎨 Estilo global
+                        plt.style.use("default")
+                        plt.rcParams.update({
+                            "figure.facecolor": BACKGROUND_COLOR,
+                            "axes.facecolor": BACKGROUND_COLOR,
+                            "axes.edgecolor": GRID_COLOR,
+                            "axes.labelcolor": "#333",
+                            "xtick.color": "#333",
+                            "ytick.color": "#333",
+                            "font.family": FONT_FAMILY,
+                            "font.size": 12,
+                            "axes.titlesize": 16,
+                            "axes.labelsize": 12,
+                            "xtick.labelsize": 11,
+                            "ytick.labelsize": 11,
+                            "grid.color": GRID_COLOR,
+                            "grid.linestyle": "--",
+                            "grid.alpha": 0.4
+                        })
 
-            # 🎯 Ajustes pós-plot
-            fig = plt.gcf()
-            fig.set_size_inches(12, 6)
+                        # ⚙️ SHAP (AGORA COM DATASET INTEIRO)
+                        explainer = shap.TreeExplainer(selected_model)
+                        dmatrix_all = xgb.DMatrix(embedded_df)
+                        shap_values = explainer.shap_values(dmatrix_all)
 
-            ax = plt.gca()
-            ax.grid(True)
+                        # 📊 Summary bar plot (média global)
+                        shap.summary_plot(
+                            shap_values,
+                            embedded_df,
+                            plot_type="bar",
+                            max_display=10,
+                            show=False
+                        )
 
-            # Remove bordas
-            ax.spines['top'].set_visible(False)
-            ax.spines['right'].set_visible(False)
+                        # 🎯 Ajustes pós-plot
+                        fig = plt.gcf()
+                        fig.set_size_inches(12, 6)
 
-            # 🎨 Cor das barras (agora tudo positivo → uma cor só)
-            for bar in ax.patches:
-                bar.set_color(SECONDARY_COLOR)
+                        ax = plt.gca()
+                        ax.grid(True)
 
-            # ➕ Adiciona valores (média |SHAP|)
-            max_width = max([p.get_width() for p in ax.patches])
+                        # Remove bordas
+                        ax.spines['top'].set_visible(False)
+                        ax.spines['right'].set_visible(False)
 
-            for bar in ax.patches:
-                width = bar.get_width()
-                ax.text(
-                    width + max_width * 0.01,
-                    bar.get_y() + bar.get_height() / 2,
-                    f"{width:.3f}",
-                    va="center",
-                    ha="left",
-                    fontsize=10
-                )
+                        # 🎨 Cor das barras (agora tudo positivo → uma cor só)
+                        for bar in ax.patches:
+                            bar.set_color(SECONDARY_COLOR)
 
-            plt.title(translations2[lang]["explicability_chart_title"], fontsize=16)
-            plt.tight_layout()
+                        # ➕ Adiciona valores (média |SHAP|)
+                        max_width = max([p.get_width() for p in ax.patches])
 
-            st.pyplot(fig)
+                        for bar in ax.patches:
+                            width = bar.get_width()
+                            ax.text(
+                                width + max_width * 0.01,
+                                bar.get_y() + bar.get_height() / 2,
+                                f"{width:.3f}",
+                                va="center",
+                                ha="left",
+                                fontsize=10
+                            )
+
+                        plt.title(translations2[lang]["explicability_chart_title"], fontsize=16)
+                        plt.tight_layout()
+
+                        st.pyplot(fig)
