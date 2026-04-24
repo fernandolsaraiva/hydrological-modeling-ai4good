@@ -35,21 +35,28 @@ def getDataStation(date, station=33767, interval=1):
     month_end = date_end.strftime("%m")
     day_end = date_end.strftime("%d")
     # url_newest = f"https://cth.daee.sp.gov.br/sibh/api/v2/measurements/grouped?format=csv&start_date={year_start}-{month_start}-{day_start}%2003%3A00&end_date={year_end}-{month_end}-{day_end}%2002%3A59&group_type=none&transmission_type_ids%5B%5D=1&transmission_type_ids%5B%5D=2&transmission_type_ids%5B%5D=3&transmission_type_ids%5B%5D=4&transmission_type_ids%5B%5D=5&transmission_type_ids%5B%5D=6&station_prefix_ids%5B%5D={station}"
-    url_newest = f"https://cth.daee.sp.gov.br/sibh/api/v2/measurements?format=json&start_date={year_start}-{month_start}-{day_start}%2003%3A00&end_date={year_end}-{month_end}-{day_end}%2002%3A59&group_type=minute&station_prefix_ids%5B%5D=={station}"
+    url_newest = f"https://cth.daee.sp.gov.br/sibh/api/v2/measurements?format=csv&start_date={year_start}-{month_start}-{day_start}%2003%3A00&end_date={year_end}-{month_end}-{day_end}%2002%3A59&group_type=minute&transmission_type_ids%5B%5D=1&transmission_type_ids%5B%5D=2&transmission_type_ids%5B%5D=3&transmission_type_ids%5B%5D=4&transmission_type_ids%5B%5D=5&transmission_type_ids%5B%5D=6&station_prefix_ids%5B%5D={station}"
     json_value = getJson(url_newest)
     json_value_transformed = StringIO(json_value)
-    df = pd.read_csv(json_value_transformed, delimiter=";")
+    # df = pd.read_csv(json_value_transformed, delimiter=";")
+    df = pd.read_csv(StringIO(json_value), sep=",")
     df.to_csv("teste.csv", index=False)
     return df
 
 
 def upsertData(df, table="timeseries.data_station_flu"):
-    column_mapping = {"prefix": "station", "date": "timestamp", "value": "value"}
+    # column_mapping = {"prefix": "station", "date": "timestamp", "value": "value"}
+    column_mapping = {"Prefixo": "station", "Data": "timestamp", "Valor": "value"}
     db_columns = [column_mapping[col] for col in df.columns if col in column_mapping]
+    # data_tuples = [
+    #     tuple(row[col] for col in column_mapping.keys() if col in df.columns)
+    #     for _, row in df.iterrows()
+    # ]
     data_tuples = [
-        tuple(row[col] for col in column_mapping.keys() if col in df.columns)
+        (row["Prefixo"], row["Data"], row["Valor"])
         for _, row in df.iterrows()
     ]
+    # print("Rows to upsert:", len(data_tuples)) 
     DATABASE_URL = os.getenv("DATABASE_URL")
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
@@ -85,10 +92,16 @@ def downloadDataAndUpsertMultipleStations(stations_flu, stations_plu):
     while last_data_date.date() < today.date():
         for station in stations_flu:
             df = getDataStation(last_data_date, station=station)
+
+            print("DF columns:", df.columns.tolist())
+            print(df.head(2))
+
             upsertData(df,table="timeseries.data_station_flu")
             print(
                 f"Dados da estação {station} inseridos/atualizados com sucesso na tabela timeseries.data_station_flu para o dia {last_data_date}"
             )
+            print("df.shape:", df.shape)
+            print(df.head(3))
         for station in stations_plu:
             df = getDataStation(last_data_date, station=station)
             upsertData(df,table="timeseries.data_station_plu")

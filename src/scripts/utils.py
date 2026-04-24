@@ -51,9 +51,84 @@ def load_fluviometric_data(start_time, end_time, station_names=['Rio Tamanduate�
             df = pd.merge(df, station_data, on='timestamp', how='outer')
     return df
 
+# def ensure_timestamp(df):
+#     df.columns = df.columns.str.lower()
+
+#     # Caso ideal
+#     if 'timestamp' in df.columns:
+#         return df
+
+#     # Se virou índice
+#     if df.index.name == 'timestamp':
+#         return df.reset_index()
+
+#     # Casos comuns de reset_index duplicado
+#     if 'index' in df.columns:
+#         return df.rename(columns={'index': 'timestamp'})
+    
+#     if 'level_0' in df.columns:
+#         return df.rename(columns={'level_0': 'timestamp'})
+
+#     # Último fallback
+#     raise ValueError(f"Timestamp não encontrado nas colunas: {df.columns}")
+
+def ensure_timestamp(df):
+    df.columns = df.columns.str.lower()
+
+    if 'timestamp' in df.columns:
+        df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+        return df
+
+    if df.index.name == 'timestamp':
+        df = df.reset_index()
+        df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+        return df
+
+    if 'index' in df.columns:
+        df = df.rename(columns={'index': 'timestamp'})
+    elif 'level_0' in df.columns:
+        df = df.rename(columns={'level_0': 'timestamp'})
+    else:
+        raise ValueError(f"Timestamp não encontrado: {df.columns}")
+
+    # ⚠️ aqui é crucial
+    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+
+    return df
+
 def load_data(start_time, end_time, station_name_flu=['Rio Tamanduateí - Mercado Municipal']):
     df_plu = load_pluviometric_data(start_time, end_time)
     df_flu = load_fluviometric_data(start_time, end_time, station_name_flu)
+    
+    df_plu.columns = df_plu.columns.str.lower()
+    df_flu.columns = df_flu.columns.str.lower()
+
+    df_plu = ensure_timestamp(df_plu)
+    df_flu = ensure_timestamp(df_flu)
+
+    # print("BEFORE MERGE")
+    # print("df_plu columns:", df_plu.columns)
+    # print("df_plu index:", df_plu.index.names)
+    # print("df_flu columns:", df_flu.columns)
+    # print("df_flu index:", df_flu.index.names)
+
+    df_plu['timestamp'] = pd.to_datetime(df_plu['timestamp'], errors='coerce')
+
+    if df_plu['timestamp'].dt.tz is None:
+        df_plu['timestamp'] = df_plu['timestamp'].dt.tz_localize('UTC')
+
+    df_plu['timestamp'] = df_plu['timestamp'].dt.tz_convert('America/Sao_Paulo')
+
+
+    df_flu['timestamp'] = pd.to_datetime(df_flu['timestamp'], errors='coerce')
+
+    if df_flu['timestamp'].dt.tz is None:
+        df_flu['timestamp'] = df_flu['timestamp'].dt.tz_localize('UTC')
+
+    df_flu['timestamp'] = df_flu['timestamp'].dt.tz_convert('America/Sao_Paulo')
+
+    # print(df_plu['timestamp'].dt.tz)
+    # print(df_flu['timestamp'].dt.tz)
 
     df_plu.columns = df_plu.columns.str.lower()
     df_flu.columns = df_flu.columns.str.lower()
