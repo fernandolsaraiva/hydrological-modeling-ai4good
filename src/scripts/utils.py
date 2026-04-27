@@ -130,5 +130,13 @@ def load_data(start_time, end_time, station_name_flu=['Rio Tamanduateí - Mercad
     # print(df_plu['timestamp'].dt.tz)
     # print(df_flu['timestamp'].dt.tz)
 
+    df_plu.columns = df_plu.columns.str.lower()
+    df_flu.columns = df_flu.columns.str.lower()
+
+    if 'timestamp' not in df_plu.columns:
+        df_plu = df_plu.reset_index()
+
+    if 'timestamp' not in df_flu.columns:
+        df_flu = df_flu.reset_index()
     df_combined = pd.merge(df_plu, df_flu, on='timestamp', how='outer')
     return df_combined
