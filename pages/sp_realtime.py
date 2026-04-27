@@ -172,13 +172,19 @@ with col3:
 selected_index = station_names.index(station_name)
 selected_critical_level = critical_levels_list[selected_index]
 
+if "selected_time" not in st.session_state:
+    st.session_state["selected_time"] = pd.to_datetime('now').time()
+
 # Campos adicionais se "Past Date/Time" for selecionado
 if option == "past":
     col4, col5 = st.columns(2)
     with col4:
         selected_date = st.date_input(translations[lang]["select_date"], value=pd.to_datetime('today').date())
     with col5:
-        selected_time = st.time_input(translations[lang]["select_time"], value=pd.to_datetime('now').time())
+        selected_time = st.time_input(
+            translations[lang]["select_time"],
+            key="selected_time"
+        )
     selected_datetime = datetime.combine(selected_date, selected_time)
     localized_datetime = sao_paulo_tz.localize(selected_datetime)
     utc_datetime = localized_datetime.astimezone(pytz.utc)
