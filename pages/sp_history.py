@@ -237,129 +237,139 @@ if __name__ == "__main__":
         end_time = st.date_input(translations[lang]["select_end_date"], value=pd.to_datetime('today').date())
 
     with col3:
-        horizon = st.selectbox(translations[lang]["select_horizon"], list(range(5, 30)), index=5)
+        horizon = st.selectbox(translations[lang]["select_horizon"], list(range(1, 13)), index=0)
 
     start_time = pd.to_datetime(start_time)
     end_time = pd.to_datetime(end_time)+timedelta(days=1)
+
+    print("Dados escolhidos: ", start_time, end_time, horizon)
 
     if st.button(translations[lang]["plot"]):
         station_code = get_station_code_flu(station_name)
 
         df = load_data(start_time, end_time)
-        df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_convert('America/Sao_Paulo')
-        df= df.sort_values(by='timestamp', ascending=False)
-        df.set_index('timestamp', inplace=True)
-
-        # Carregar modelo do banco
-        DATABASE_URL = os.getenv("DATABASE_URL")
-        model, parameters, period, rmse = load_model_from_db(station_code, horizon, DATABASE_URL)
-
-        # print("Model:", model)
-        if model is None:
-            st.warning(translations[lang]["no_models_available"] + f" {station_name}")
+        print(f"Data loaded with shape: {df.shape}")
+        if df is None or df.empty or 'timestamp' not in df.columns:
+            st.warning(translations[lang]["no_data_available"])
+            st.stop()
+        if df.filter(like=f'flu_{station_code}').empty:
+            st.warning(translations[lang]["no_fluviometric_data"])
+            st.stop()
         else:
-            # Aplicar Time Delay Embedding
-            n_lags = 6
-            horizon = horizon
-            station_target = station_code
-            target_variable = f'flu_{station_target}(t+{horizon})'
-            max_nans = 3
-            embedded_df = time_delay_embedding_df(df, n_lags, horizon, station_target=station_target)
-            if embedded_df.empty:
-                st.warning(translations[lang]["no_forecast_possible"])
+            df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_convert('America/Sao_Paulo')
+            df= df.sort_values(by='timestamp', ascending=False)
+            df.set_index('timestamp', inplace=True)
+
+            # Carregar modelo do banco
+            DATABASE_URL = os.getenv("DATABASE_URL")
+            model, parameters, period, rmse = load_model_from_db(station_code, horizon, DATABASE_URL)
+
+            # print("Model:", model)
+            if model is None:
+                st.warning(translations[lang]["no_models_available"] + f" {station_name}")
             else:
-                embedded_df = fill_missing_values_horizontal(embedded_df, 'plu_', n_lags)
-                embedded_df = fill_missing_values_horizontal(embedded_df, 'flu_', n_lags)
-                
-                X_test = embedded_df.drop(columns=[target_variable])
-                y_test = embedded_df[target_variable]
-                
-                d_test = xgb.DMatrix(X_test)
-                y_pred = model.predict(d_test)
-                sao_paulo_tz = pytz.timezone('America/Sao_Paulo')
-                adjusted_timestamps = (X_test.index + pd.to_timedelta(horizon * 10, unit='m')).tz_convert(sao_paulo_tz)
-                # print(y_test)
-                mask = ~np.isnan(y_test) & ~np.isnan(y_pred)
-                y_test_filtered = y_test[mask]
-                y_pred_filtered = y_pred[mask]
-                adjusted_timestamps_filtered = adjusted_timestamps[mask]
-                rmse = np.sqrt(mean_squared_error(y_test_filtered, y_pred_filtered))
-                st.write(f'RMSE: {rmse}')
+                # Aplicar Time Delay Embedding
+                n_lags = 6
+                horizon = horizon
+                station_target = station_code
+                target_variable = f'flu_{station_target}(t+{horizon})'
+                max_nans = 3
+                embedded_df = time_delay_embedding_df(df, n_lags, horizon, station_target=station_target)
+                if embedded_df.empty:
+                    st.warning(translations[lang]["no_forecast_possible"])
+                else:
+                    embedded_df = fill_missing_values_horizontal(embedded_df, 'plu_', n_lags)
+                    embedded_df = fill_missing_values_horizontal(embedded_df, 'flu_', n_lags)
+                    
+                    X_test = embedded_df.drop(columns=[target_variable])
+                    y_test = embedded_df[target_variable]
+                    
+                    d_test = xgb.DMatrix(X_test)
+                    y_pred = model.predict(d_test)
+                    sao_paulo_tz = pytz.timezone('America/Sao_Paulo')
+                    adjusted_timestamps = (X_test.index + pd.to_timedelta(horizon * 10, unit='m')).tz_convert(sao_paulo_tz)
+                    # print(y_test)
+                    mask = ~np.isnan(y_test) & ~np.isnan(y_pred)
+                    y_test_filtered = y_test[mask]
+                    y_pred_filtered = y_pred[mask]
+                    adjusted_timestamps_filtered = adjusted_timestamps[mask]
+                    rmse = np.sqrt(mean_squared_error(y_test_filtered, y_pred_filtered))
+                    st.write(f'RMSE: {rmse}')
 
-                fig_pred = plot_predictions(y_test_filtered, y_pred_filtered, adjusted_timestamps_filtered, critical_levels=selected_critical_level, station_name=station_name, option="historical")
+                    fig_pred = plot_predictions(y_test_filtered, y_pred_filtered, adjusted_timestamps_filtered, critical_levels=selected_critical_level, station_name=station_name, option="historical")
 
-                # Tabs
-                tab1, tab2 = st.tabs([translations[lang]["forecast"], translations[lang]["explainability"]])
-                
-                with tab1:
-                    st.plotly_chart(fig_pred, use_container_width=True)
-                
-                with tab2:
+                    # Tabs
+                    tab1, tab2 = st.tabs([translations[lang]["forecast"], translations[lang]["explainability"]])
+                    
+                    with tab1:
+                        st.plotly_chart(fig_pred, use_container_width=True)
+                    
+                    with tab2:
 
-                    plt.close("all")
+                        plt.close("all")
 
-                    # 🎨 Estilo global (igual ao dashboard principal)
-                    plt.style.use("default")
-                    plt.rcParams.update({
-                        "figure.facecolor": BACKGROUND_COLOR,
-                        "axes.facecolor": BACKGROUND_COLOR,
-                        "axes.edgecolor": GRID_COLOR,
-                        "axes.labelcolor": "#333",
-                        "xtick.color": "#333",
-                        "ytick.color": "#333",
-                        "font.family": FONT_FAMILY,
-                        "font.size": 12,
-                        "axes.titlesize": 16,
-                        "axes.labelsize": 12,
-                        "xtick.labelsize": 11,
-                        "ytick.labelsize": 11,
-                        "grid.color": GRID_COLOR,
-                        "grid.linestyle": "--",
-                        "grid.alpha": 0.4
-                    })
+                        # 🎨 Estilo global (igual ao dashboard principal)
+                        plt.style.use("default")
+                        plt.rcParams.update({
+                            "figure.facecolor": BACKGROUND_COLOR,
+                            "axes.facecolor": BACKGROUND_COLOR,
+                            "axes.edgecolor": GRID_COLOR,
+                            "axes.labelcolor": "#333",
+                            "xtick.color": "#333",
+                            "ytick.color": "#333",
+                            "font.family": FONT_FAMILY,
+                            "font.size": 12,
+                            "axes.titlesize": 16,
+                            "axes.labelsize": 12,
+                            "xtick.labelsize": 11,
+                            "ytick.labelsize": 11,
+                            "grid.color": GRID_COLOR,
+                            "grid.linestyle": "--",
+                            "grid.alpha": 0.4
+                        })
 
-                    # ⚙️ SHAP
-                    explainer = shap.TreeExplainer(model)
+                        # ⚙️ SHAP
+                        explainer = shap.TreeExplainer(model)
 
-                    # Agora sim: dataset inteiro
-                    d_all = xgb.DMatrix(X_test)
-                    shap_values = explainer.shap_values(d_all)
+                        # Agora sim: dataset inteiro
+                        d_all = xgb.DMatrix(X_test)
+                        shap_values = explainer.shap_values(d_all)
 
-                    # 📊 Summary bar plot (global)
-                    shap.summary_plot(
-                        shap_values,
-                        X_test,
-                        plot_type="bar",
-                        show=False
-                    )
-
-                    fig = plt.gcf()
-                    ax = plt.gca()
-
-                    # 🎨 Cores
-                    for bar in ax.patches:
-                        bar.set_color(SECONDARY_COLOR)
-
-                    # ➕ Adiciona valor em cada barra
-                    for bar in ax.patches:
-                        width = bar.get_width()
-                        ax.text(
-                            width,                          # posição x (final da barra)
-                            bar.get_y() + bar.get_height()/2,  # posição y (centro da barra)
-                            f"{width:.3f}",                 # valor formatado
-                            va="center",
-                            ha="left",
-                            fontsize=10
+                        # 📊 Summary bar plot (global)
+                        shap.summary_plot(
+                            shap_values,
+                            X_test,
+                            plot_type="bar",
+                            show=False
                         )
 
-                    # 🎯 Layout
-                    fig.set_size_inches(12, 6)
-                    ax.grid(True)
-                    ax.spines["top"].set_visible(False)
-                    ax.spines["right"].set_visible(False)
+                        fig = plt.gcf()
+                        ax = plt.gca()
 
-                    plt.title(translations2[lang]["explicability_chart_title"], fontsize=16)
-                    plt.tight_layout()
+                        # 🎨 Cores
+                        for bar in ax.patches:
+                            bar.set_color(SECONDARY_COLOR)
 
-                    st.pyplot(fig)
-                
+                        # ➕ Adiciona valor em cada barra
+                        for bar in ax.patches:
+                            width = bar.get_width()
+                            ax.text(
+                                width,                          # posição x (final da barra)
+                                bar.get_y() + bar.get_height()/2,  # posição y (centro da barra)
+                                f"{width:.3f}",                 # valor formatado
+                                va="center",
+                                ha="left",
+                                fontsize=10
+                            )
+
+                        # 🎯 Layout
+                        fig.set_size_inches(12, 6)
+                        ax.grid(True)
+                        ax.spines["top"].set_visible(False)
+                        ax.spines["right"].set_visible(False)
+
+                        plt.title(translations2[lang]["explicability_chart_title"], fontsize=16)
+                        plt.tight_layout()
+
+                        st.pyplot(fig)
+                    

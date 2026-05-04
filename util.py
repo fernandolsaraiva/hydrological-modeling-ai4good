@@ -23,6 +23,8 @@ def get_station_data_flu(station_name, start_date, end_date, aggregation):
     df.rename(columns={'datahora': 'timestamp', 'datetime': 'timestamp'}, inplace=True)
     conn.close()
 
+    # print(query)
+
     df = df[['timestamp', 'value','station']]
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df = df.set_index('timestamp')
@@ -99,9 +101,9 @@ def get_multiple_station_data_plu(station_names, start_date, end_date, aggregati
 
     #for station_name in station_names:
     for station_name in df['name'].unique():
-        print(f"Processando estação: {station_name}")
+        # print(f"Processando estação: {station_name}")
         station_code = station_codes[station_name]
-        print(f"Código da estação: {station_code}")
+        # print(f"Código da estação: {station_code}")
         station_data = df[df['name'] == station_name][['value']].rename(columns={'value': f'plu_{station_code}'})
         
         if aggregation == '10-minute':

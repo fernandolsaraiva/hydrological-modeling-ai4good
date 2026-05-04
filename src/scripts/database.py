@@ -8,14 +8,34 @@ import xgboost as xgb
 def save_model_to_db(model, station, horizon, params, period, rmse, db_url):
     temp_model_file = 'temp_model.xgb'
     model.save_model(temp_model_file)
+
     with open(temp_model_file, 'rb') as file:
         model_binary = file.read()
+
     conn = psycopg2.connect(db_url)
     cursor = conn.cursor()
+
     cursor.execute("""
-    INSERT INTO prediction.model (station, horizon, model, main, parameters, period, rmse)
-    VALUES (%s, %s, %s, %s, %s, %s, %s)
-    """, (station, horizon, model_binary, False, json.dumps(params), period, json.dumps(rmse)))
+    SELECT COALESCE(MAX(version), 0) + 1
+    FROM prediction.model
+    WHERE station = %s AND horizon = %s
+    """, (station, horizon))
+    version = cursor.fetchone()[0]
+
+    cursor.execute("""
+    INSERT INTO prediction.model (station, horizon, version, model, main, parameters, period, rmse)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    """, (
+        station,
+        horizon,
+        version,
+        model_binary,
+        False,
+        json.dumps(params),
+        json.dumps(period),
+        json.dumps(rmse)
+    ))
+
     conn.commit()
     cursor.close()
     conn.close()
@@ -24,7 +44,14 @@ def save_model_to_db(model, station, horizon, params, period, rmse, db_url):
 def load_model_from_db(station, horizon, db_url):
     conn = psycopg2.connect(db_url)
     cursor = conn.cursor()
-    cursor.execute("SELECT model, parameters, period, rmse FROM prediction.model WHERE station = %s AND horizon = %s", (station, horizon))
+    # cursor.execute("SELECT model, parameters, period, rmse FROM prediction.model WHERE station = %s AND horizon = %s", (station, horizon))
+    cursor.execute("""
+    SELECT model, parameters, period, rmse
+    FROM prediction.model
+    WHERE station = %s AND horizon = %s AND main = TRUE
+    ORDER BY version DESC
+    LIMIT 1
+    """, (station, horizon))
     result = cursor.fetchone()
     
     # 🔒 1. tratar ausência de resultado
@@ -51,7 +78,13 @@ def load_model_from_db(station, horizon, db_url):
 def load_all_models_from_db(station_code, DATABASE_URL):
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
-    cursor.execute("SELECT horizon, model, parameters, period, rmse FROM prediction.model WHERE station = %s and main = TRUE", (station_code,))
+    # cursor.execute("SELECT horizon, model, parameters, period, rmse FROM prediction.model WHERE station = %s and main = TRUE", (station_code,))
+    cursor.execute("""
+    SELECT horizon, model, parameters, period, rmse
+    FROM prediction.model
+    WHERE station = %s AND main = TRUE
+    ORDER BY horizon, version DESC
+    """, (station_code,))
     results = cursor.fetchall()
     
     models = []

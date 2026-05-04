@@ -14,7 +14,7 @@ translations = {
         "prediction_option": "Opção de Previsão",
         "current_moment": "Instante atual",
         "past_moment": "Data/Hora Passada",
-        "horizon": "Horizonte (minutos)",
+        "horizon": "Horizonte",
         "select_station": "Selecione a Estação",
         "select_date": "Selecione a Data",
         "select_time": "Selecione a Hora",
@@ -37,6 +37,7 @@ translations = {
         "no_data_available":"Não há dados disponíveis para o período selecionado",
         "no_forecast_possible":"Não foi possível gerar previsão com os dados disponíveis",
         "no_models_available":"Não há modelos disponíveis para a estação selecionada",
+        "no_fluviometric_data":"Sem dados fluviométricos suficientes para gerar previsão",
     },
     "English": {
         "home": "Home",
@@ -53,7 +54,7 @@ translations = {
         "prediction_option": "Prediction Option",
         "current_moment": "Current moment",
         "past_moment": "Past Date/Time",
-        "horizon": "Horizon (minutes)",
+        "horizon": "Horizon",
         "select_station": "Select Station",
         "select_date": "Select Date",
         "select_time": "Select Time",
@@ -76,6 +77,7 @@ translations = {
         "no_data_available":"No data available for the selected period",
         "no_forecast_possible":"Unable to generate forecast with the available data",
         "no_models_available":"No models available for the selected station",
+        "no_fluviometric_data":"Not enough fluviometric data to generate forecast",
     },
     "Español": {
         "home": "Inicio",
@@ -115,5 +117,6 @@ translations = {
         "no_data_available":"No hay datos disponibles para el período seleccionado",
         "no_forecast_possible":"No fue posible generar pronóstico con los datos disponibles",
         "no_models_available":"No hay modelos disponibles para la estación seleccionada",
+        "no_fluviometric_data":"No hay suficientes datos fluviométricos para generar pronóstico",
     },
 }

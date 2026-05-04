@@ -33,7 +33,7 @@ if load_data_bool:
     df.to_csv('data/data_experimental.csv', index=False)
 #df = pd.read_csv('data/data_experimental.csv')
 df = pd.read_csv('src/data/data_experimental.csv')
-df.set_index('timestamp', inplace=True)
+# df.set_index('timestamp', inplace=True)
 # %%
 # Aplicar Time Delay Embedding
 n_lags = 6
@@ -63,7 +63,7 @@ params = {
     'seed': 42
 }
 
-model = train_xgboost(X_train, y_train, X_val, y_val, params)
+model, evals_result = train_xgboost(X_train, y_train, X_val, y_val, params)
 y_pred = predict_xgboost(model, X_test)
 rmse = {
     'train': np.sqrt(mean_squared_error(y_train, model.predict(xgb.DMatrix(X_train)))),
