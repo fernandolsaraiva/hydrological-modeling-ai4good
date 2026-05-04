@@ -39,6 +39,7 @@ def time_delay_embedding_df(df: pd.DataFrame, n_lags: int, horizon: int, station
     embedded_df = pd.DataFrame()
     list_cols = []
     for column in df.columns:
+        # print(f"Applying time delay embedding to column: {column}")
         embedded_series = time_delay_embedding(df[column], n_lags, horizon)
         list_cols.append(embedded_series)
         embedded_df = pd.concat(list_cols, axis=1)

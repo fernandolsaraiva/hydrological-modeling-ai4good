@@ -13,8 +13,10 @@ def split_train_val_test(df, target_variable, test_size=0.2, val_size=0.2):
 def train_xgboost(X_train, y_train, X_val, y_val, params):
     dtrain = xgb.DMatrix(X_train, label=y_train)
     dval = xgb.DMatrix(X_val, label=y_val)
-    model = xgb.train(params, dtrain, num_boost_round=1000, evals=[(dtrain, 'train'), (dval, 'val')], early_stopping_rounds=10)
-    return model
+    evals_result = {}
+    model = xgb.train(params, dtrain, num_boost_round=1000, evals=[(dtrain, 'train'), (dval, 'val')], early_stopping_rounds=10, evals_result=evals_result,  # 👈 guarda histórico
+        verbose_eval=10)
+    return model, evals_result
 
 def predict_xgboost(model, X_test):
     dtest = xgb.DMatrix(X_test)
