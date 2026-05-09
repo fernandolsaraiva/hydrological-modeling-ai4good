@@ -237,12 +237,12 @@ if __name__ == "__main__":
         end_time = st.date_input(translations[lang]["select_end_date"], value=pd.to_datetime('today').date())
 
     with col3:
-        horizon = st.selectbox(translations[lang]["select_horizon"], list(range(1, 13)), index=0)
+        selected_horizon = st.selectbox(translations[lang]["select_horizon"], list(range(10, 130, 10)), index=0)
 
     start_time = pd.to_datetime(start_time)
     end_time = pd.to_datetime(end_time)+timedelta(days=1)
 
-    print("Dados escolhidos: ", start_time, end_time, horizon)
+    # print("Dados escolhidos: ", start_time, end_time, horizon)
 
     if st.button(translations[lang]["plot"]):
         station_code = get_station_code_flu(station_name)
@@ -262,6 +262,8 @@ if __name__ == "__main__":
 
             # Carregar modelo do banco
             DATABASE_URL = os.getenv("DATABASE_URL")
+            print("Selected horizon for explainability analysis:", selected_horizon)
+            horizon = int(selected_horizon / 10)
             model, parameters, period, rmse = load_model_from_db(station_code, horizon, DATABASE_URL)
 
             # print("Model:", model)
@@ -270,7 +272,7 @@ if __name__ == "__main__":
             else:
                 # Aplicar Time Delay Embedding
                 n_lags = 6
-                horizon = horizon
+                # horizon = selected_horizon
                 station_target = station_code
                 target_variable = f'flu_{station_target}(t+{horizon})'
                 max_nans = 3
@@ -308,34 +310,39 @@ if __name__ == "__main__":
 
                         plt.close("all")
 
-                        # 🎨 Estilo global (igual ao dashboard principal)
+                        # =========================
+                        # STYLE (igual gráfico 1)
+                        # =========================
                         plt.style.use("default")
-                        plt.rcParams.update({
-                            "figure.facecolor": BACKGROUND_COLOR,
-                            "axes.facecolor": BACKGROUND_COLOR,
-                            "axes.edgecolor": GRID_COLOR,
-                            "axes.labelcolor": "#333",
-                            "xtick.color": "#333",
-                            "ytick.color": "#333",
-                            "font.family": FONT_FAMILY,
-                            "font.size": 12,
-                            "axes.titlesize": 16,
-                            "axes.labelsize": 12,
-                            "xtick.labelsize": 11,
-                            "ytick.labelsize": 11,
-                            "grid.color": GRID_COLOR,
-                            "grid.linestyle": "--",
-                            "grid.alpha": 0.4
-                        })
 
-                        # ⚙️ SHAP
+                        fig, ax = plt.subplots(figsize=(12, 7))
+
+                        fig.patch.set_facecolor("white")
+                        ax.set_facecolor("white")
+
+                        ax.grid(True, linestyle="--", linewidth=0.7, alpha=0.35)
+
+                        ax.spines["top"].set_visible(False)
+                        ax.spines["right"].set_visible(False)
+                        ax.spines["left"].set_color("#cccccc")
+                        ax.spines["bottom"].set_color("#cccccc")
+
+                        # =========================
+                        # SHAP (GLOBAL IMPORTANCE)
+                        # =========================
                         explainer = shap.TreeExplainer(model)
 
-                        # Agora sim: dataset inteiro
                         d_all = xgb.DMatrix(X_test)
                         shap_values = explainer.shap_values(d_all)
 
-                        # 📊 Summary bar plot (global)
+                        shap.initjs()
+
+                        plt.close("all")
+
+                        # cria figura (SHAP usa matplotlib internamente)
+                        fig, ax = plt.subplots()
+
+                        # summary bar plot (igual ao seu exemplo)
                         shap.summary_plot(
                             shap_values,
                             X_test,
@@ -343,33 +350,21 @@ if __name__ == "__main__":
                             show=False
                         )
 
+                        # ajustes visuais leves (opcional, mas mantém consistência)
                         fig = plt.gcf()
                         ax = plt.gca()
 
-                        # 🎨 Cores
-                        for bar in ax.patches:
-                            bar.set_color(SECONDARY_COLOR)
+                        fig.set_size_inches(12, 7)
 
-                        # ➕ Adiciona valor em cada barra
-                        for bar in ax.patches:
-                            width = bar.get_width()
-                            ax.text(
-                                width,                          # posição x (final da barra)
-                                bar.get_y() + bar.get_height()/2,  # posição y (centro da barra)
-                                f"{width:.3f}",                 # valor formatado
-                                va="center",
-                                ha="left",
-                                fontsize=10
-                            )
+                        ax.grid(True, linestyle="--", linewidth=0.7, alpha=0.35)
 
-                        # 🎯 Layout
-                        fig.set_size_inches(12, 6)
-                        ax.grid(True)
                         ax.spines["top"].set_visible(False)
                         ax.spines["right"].set_visible(False)
+                        ax.spines["left"].set_color("#cccccc")
+                        ax.spines["bottom"].set_color("#cccccc")
 
                         plt.title(translations2[lang]["explicability_chart_title"], fontsize=16)
+
                         plt.tight_layout()
 
                         st.pyplot(fig)
-                    
