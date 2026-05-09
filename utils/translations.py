@@ -31,13 +31,15 @@ translations = {
         "select_station": "Selecione a Estação",
         "select_start_date": "Selecione a Data de Início",
         "select_end_date": "Selecione a Data de Término",
-        "select_horizon": "Selecione o Horizonte",
+        "select_horizon": "Selecione o horizonte (minutos)",
         "plot": "Plotar Gráfico",
         "timestamp": "Timestamp",
         "no_data_available":"Não há dados disponíveis para o período selecionado",
         "no_forecast_possible":"Não foi possível gerar previsão com os dados disponíveis",
         "no_models_available":"Não há modelos disponíveis para a estação selecionada",
         "no_fluviometric_data":"Sem dados fluviométricos suficientes para gerar previsão",
+        "shap_value_impact": "Impacto do Valor SHAP",
+        "features": "Features"
     },
     "English": {
         "home": "Home",
@@ -71,13 +73,16 @@ translations = {
         "select_station": "Select Station",
         "select_start_date": "Select Start Date",
         "select_end_date": "Select End Date",
-        "select_horizon": "Select Horizon",
+        "select_horizon": "Select Horizon (minutes)",
         "plot": "Plot Graph",
         "timestamp": "Timestamp",
         "no_data_available":"No data available for the selected period",
         "no_forecast_possible":"Unable to generate forecast with the available data",
         "no_models_available":"No models available for the selected station",
         "no_fluviometric_data":"Not enough fluviometric data to generate forecast",
+        "shap_value_impact": "SHAP Value Impact",
+        "features": "Features",
+        "explainability_chart_title": "Explainability Analysis"
     },
     "Español": {
         "home": "Inicio",
@@ -118,5 +123,8 @@ translations = {
         "no_forecast_possible":"No fue posible generar pronóstico con los datos disponibles",
         "no_models_available":"No hay modelos disponibles para la estación seleccionada",
         "no_fluviometric_data":"No hay suficientes datos fluviométricos para generar pronóstico",
+        "explainability_chart_title": "Análisis de Explicabilidad",
+        "shap_value_impact": "Impacto del Valor SHAP",
+        "features": "Características"
     },
 }
