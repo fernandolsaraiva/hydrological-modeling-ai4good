@@ -9,6 +9,15 @@ import psycopg2
 import os
 from utils.translations import translations
 
+import base64
+
+@st.cache_data
+def load_local_image(path):
+    with open(path, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode()
+    return f"data:image/jpeg;base64,{encoded}"
+
+
 st.set_page_config(
     page_title="Floodcasting XAI Alert System",
     layout="wide",
@@ -44,22 +53,22 @@ cards_data = [
     {
         "title": "São Paulo",
         "page": "pages/sp_realtime.py",
-        "img": "https://drive.google.com/thumbnail?id=1l7MHwN6cAea-SiCy-L92xYFWViav6adE&sz=w2000"
+        "img": load_local_image("static/sp.jpg")
     },
     {
         "title": "Nova Friburgo",
         "page": "pages/nf_realtime.py",
-        "img": "https://drive.google.com/thumbnail?id=1w03b1YyuguwZGAvyGsLcvgiObR0pKxyi&sz=w2000"
+        "img": load_local_image("static/nf.jpg")
     },
     {
         "title": "Paraguai",
         "page": "pages/py_realtime.py",
-        "img": "https://drive.google.com/thumbnail?id=1XWgu1gLrmTHKL7TLLrhZtkcBl4_ZUWWe&sz=w2000"
+        "img": load_local_image("static/py.jpg")
     },
     {
         "title": "Uruguai",
         "page": "pages/uy_realtime.py",
-        "img": "https://drive.google.com/thumbnail?id=14Z3deszPh7YhRZib5P-zllCHNLpM02Ae&sz=w2000"
+        "img": load_local_image("static/uy.jpg")
     },
 ]
 
