@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from queue import Empty
 from utils.menu import render_menu
 
 import matplotlib
@@ -199,147 +200,162 @@ if __name__ == "__main__":
     # BUTTON
     # =========================
     if st.button(translations[lang]["plot"]):
+        # status = st.status(translations[lang]["loading"], expanded=False)
+        station_code = get_station_code_flu(station_name)
+
+        if option == "current":
+            last_available_date = get_last_available_date(station_code)
+        else:
+            last_available_date = formatted_datetime
+            last_available_date = pd.to_datetime(last_available_date)
+
+        end_time = last_available_date
+
+        start_time = end_time - pd.Timedelta(2, 'h')
+
+        start_time_visualization = end_time - pd.Timedelta(hours=12)
+        
         with st.spinner(translations[lang]["loading"]):
-
-            station_code = get_station_code_flu(station_name)
-
-            if option == "current":
-                last_available_date = get_last_available_date(station_code)
-            else:
-                last_available_date = formatted_datetime
-                last_available_date = pd.to_datetime(last_available_date)
-
-            end_time = last_available_date
-
-            start_time = end_time - pd.Timedelta(2, 'h')
-
-            start_time_visualization = end_time - pd.Timedelta(hours=12)
-
             df = load_data(start_time, end_time)
 
-            df['timestamp'] = pd.to_datetime(
-                df['timestamp']
-            ).dt.tz_convert('America/Sao_Paulo')
+        df['timestamp'] = pd.to_datetime(
+            df['timestamp']
+        ).dt.tz_convert('America/Sao_Paulo')
 
-            df = df.sort_values(
-                by='timestamp',
-                ascending=False
-            ).head(7)
+        df = df.sort_values(
+            by='timestamp',
+            ascending=False
+        ).head(7)
 
-            df.set_index('timestamp', inplace=True)
+        if df is None or df.empty:
+            st.warning(translations[lang]["no_data_available"])
+            st.stop()
 
-            # =========================
-            # EMBEDDING
-            # =========================
-            n_lags = 6
-            horizon = 0
+        df.set_index('timestamp', inplace=True)
 
-            station_target = station_code
+        if df.filter(like=f'flu_{station_code}').empty:
+            st.warning(translations[lang]["no_fluviometric_data"])
+            st.stop()
 
-            target_variable = f'flu_{station_target}(t+{horizon})'
+        # =========================
+        # EMBEDDING
+        # =========================
+        n_lags = 6
+        horizon = 0
 
-            max_nans = 3
+        station_target = station_code
 
-            embedded_df = time_delay_embedding_df(
-                df,
-                n_lags,
-                horizon,
-                station_target=station_target
+        target_variable = f'flu_{station_target}(t+{horizon})'
+
+        max_nans = 3
+
+        embedded_df = time_delay_embedding_df(
+            df,
+            n_lags,
+            horizon,
+            station_target=station_target
+        )
+        if embedded_df.empty:
+            st.warning(translations[lang]["no_forecast_possible"])
+            st.stop()
+
+        embedded_df = fill_missing_values_horizontal(
+            embedded_df,
+            'plu_',
+            n_lags
+        )
+
+        embedded_df = fill_missing_values_horizontal(
+            embedded_df,
+            'flu_',
+            n_lags
+        )
+
+        # =========================
+        # MODELS
+        # =========================
+        DATABASE_URL = os.getenv("DATABASE_URL")
+
+        models_data = load_all_models_from_db(
+            station_code,
+            DATABASE_URL
+        )
+
+        if models_data is Empty or models_data is None:
+            st.warning(translations[lang]["no_models_available"] + f" {station_name}")
+            st.stop()
+
+        # =========================
+        # PREDICTIONS
+        # =========================
+        predictions = []
+        upper_bounds = []
+        lower_bounds = []
+
+        for horizon, model, parameters, period, rmse in models_data:
+
+            dmatrix = xgb.DMatrix(embedded_df)
+
+            prediction = model.predict(dmatrix)
+
+            predictions.append(prediction[0])
+
+            upper_bounds.append(
+                prediction[0] + 1.96 * rmse['test']
             )
 
-            embedded_df = fill_missing_values_horizontal(
-                embedded_df,
-                'plu_',
-                n_lags
+            lower_bounds.append(
+                prediction[0] - 1.96 * rmse['test']
             )
 
-            embedded_df = fill_missing_values_horizontal(
-                embedded_df,
-                'flu_',
-                n_lags
-            )
+        prediction_timestamps = [
+            end_time + pd.Timedelta(minutes=10 * i)
+            for i in range(1, 13)
+        ]
 
-            # =========================
-            # MODELS
-            # =========================
-            DATABASE_URL = os.getenv("DATABASE_URL")
+        prediction_df = pd.DataFrame({
+            'timestamp': prediction_timestamps,
+            'prediction': predictions,
+            'upper_bound': upper_bounds,
+            'lower_bound': lower_bounds
+        })
 
-            models_data = load_all_models_from_db(
-                station_code,
-                DATABASE_URL
-            )
+        prediction_df['timestamp'] = prediction_df[
+            'timestamp'
+        ].dt.tz_convert('America/Sao_Paulo')
 
-            # =========================
-            # PREDICTIONS
-            # =========================
-            predictions = []
-            upper_bounds = []
-            lower_bounds = []
+        # =========================
+        # OBSERVED DATA
+        # =========================
+        data = get_station_data_flu(
+            station_name,
+            start_time_visualization,
+            end_time,
+            aggregation='10-minute'
+        )
 
-            for horizon, model, parameters, period, rmse in models_data:
+        data['timestamp'] = pd.to_datetime(
+            data['timestamp']
+        ).dt.tz_convert('America/Sao_Paulo')
 
-                dmatrix = xgb.DMatrix(embedded_df)
+        # =========================
+        # FIGURE 1
+        # =========================
+        fig1 = plot_river_level(
+            data,
+            station_name,
+            last_available_date=last_available_date,
+            critical_levels=selected_critical_level,
+            prediction_data=prediction_df,
+            option=option
+        )
 
-                prediction = model.predict(dmatrix)
-
-                predictions.append(prediction[0])
-
-                upper_bounds.append(
-                    prediction[0] + 1.96 * rmse['test']
-                )
-
-                lower_bounds.append(
-                    prediction[0] - 1.96 * rmse['test']
-                )
-
-            prediction_timestamps = [
-                end_time + pd.Timedelta(minutes=10 * i)
-                for i in range(1, 13)
-            ]
-
-            prediction_df = pd.DataFrame({
-                'timestamp': prediction_timestamps,
-                'prediction': predictions,
-                'upper_bound': upper_bounds,
-                'lower_bound': lower_bounds
-            })
-
-            prediction_df['timestamp'] = prediction_df[
-                'timestamp'
-            ].dt.tz_convert('America/Sao_Paulo')
-
-            # =========================
-            # OBSERVED DATA
-            # =========================
-            data = get_station_data_flu(
-                station_name,
-                start_time_visualization,
-                end_time,
-                aggregation='10-minute'
-            )
-
-            data['timestamp'] = pd.to_datetime(
-                data['timestamp']
-            ).dt.tz_convert('America/Sao_Paulo')
-
-            # =========================
-            # FIGURE 1
-            # =========================
-            fig1 = plot_river_level(
-                data,
-                station_name,
-                last_available_date=last_available_date,
-                critical_levels=selected_critical_level,
-                prediction_data=prediction_df,
-                option=option
-            )
-
-            # =========================
-            # SESSION STATE
-            # =========================
-            st.session_state["fig1"] = fig1
-            st.session_state["embedded_df"] = embedded_df
-            st.session_state["models_data"] = models_data
+        # =========================
+        # SESSION STATE
+        # =========================
+        st.session_state["fig1"] = fig1
+        st.session_state["embedded_df"] = embedded_df
+        st.session_state["models_data"] = models_data
             
 
     # =========================
