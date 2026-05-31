@@ -62,12 +62,12 @@ cards_data = [
     },
     {
         "title": "Paraguai",
-        "page": "pages/py_realtime.py",
+        "page": "pages/py_about.py",
         "img": load_local_image("static/py.jpg")
     },
     {
         "title": "Uruguai",
-        "page": "pages/uy_realtime.py",
+        "page": "pages/uy_about.py",
         "img": load_local_image("static/uy.jpg")
     },
 ]
