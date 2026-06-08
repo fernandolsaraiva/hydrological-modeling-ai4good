@@ -76,14 +76,18 @@ GRID_COLOR = "#e5e5e5"
 FONT_FAMILY = "Arial"
 
 def plot_river_level(data, station_name, last_available_date,critical_levels, prediction_data=None, option = translations[lang]["current_time"]):
-    data['value'] = data['value'] / 100
+    # data['value'] = data['value'] / 100
+    data['value'] = data['value']
     fig = px.line(data, x='timestamp', y='value')
     fig.add_scatter(x=data['timestamp'], y=data['value'], mode='lines+markers', marker=dict(color='blue', size=5), name=translations[lang]["observed"])
     
     if prediction_data is not None:
-        prediction_data['prediction'] = prediction_data['prediction'] / 100
-        prediction_data['upper_bound'] = prediction_data['upper_bound'] / 100
-        prediction_data['lower_bound'] = prediction_data['lower_bound'] / 100
+        # prediction_data['prediction'] = prediction_data['prediction'] / 100
+        # prediction_data['upper_bound'] = prediction_data['upper_bound'] / 100
+        # prediction_data['lower_bound'] = prediction_data['lower_bound'] / 100
+        prediction_data['prediction'] = prediction_data['prediction']
+        prediction_data['upper_bound'] = prediction_data['upper_bound']
+        prediction_data['lower_bound'] = prediction_data['lower_bound']
 
         fig.add_scatter(x=prediction_data['timestamp'], y=prediction_data['prediction'], mode='lines+markers', marker=dict(color='orange', size=5), name=translations[lang]["forecast"])
 
