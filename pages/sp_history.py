@@ -108,8 +108,11 @@ st.title(translations2[lang]["title"])
 #     return fig
 
 def plot_predictions(y_test, y_pred, timestamps, critical_levels, station_name, option="current", last_available_date=None):
-    y_test_m = [value / 100 for value in y_test]
-    y_pred_m = [value / 100 for value in y_pred]
+    # y_test_m = [value / 100 for value in y_test]
+    # y_pred_m = [value / 100 for value in y_pred]
+
+    y_test_m = [value for value in y_test]
+    y_pred_m = [value for value in y_pred]
 
     fig = go.Figure()
 
