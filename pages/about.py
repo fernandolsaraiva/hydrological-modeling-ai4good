@@ -8,8 +8,9 @@ render_menu()
 
 translations = {
    "Português": {"title": "Plataforma de Previsão Hidrológica com IA eXplicável", 
-                    "body1": "Uma plataforma operacional voltada à previsão hidrológica, utilizando técnicas de Inteligência Artificial eXplicável (XAI) para apoiar a tomada de decisão em cenários críticos.",
-                    "body2": "Este projeto é fruto do trabalho direto e indireto de diversas pessoas — desde alunos de graduação até pesquisadores de pós-doutorado, professores e especialistas da área.",
+                    "body1": "Uma plataforma operacional voltada à previsão hidrológica, que utiliza técnicas de Inteligência Artificial eXplicável (XAI) para apoiar a tomada de decisão em cenários críticos.",
+                    "body2": "Iniciativa ligada ao projeto iFAST – Ferramentas Inteligentes para Alertas de Enxurradas, sediado no Cemaden/MCTI, e com financiamento do CNPq e da FAPESP. "
+                    "\n\nEste projeto é fruto do trabalho direto e indireto de diversas pessoas — desde alunos de graduação até pesquisadores de pós-doutorado, professores e especialistas da área. Agradecemos a todos os que contribuíram para a iniciativa e estamos de portas abertas a novas colaborações.",
                     "Fernando":"Fernando Saraiva é engenheiro pelo ITA e mestrando em Ciência da Computação (Unifesp), com foco em Machine Learning. Liderou o projeto na iniciativa AI4GOOD da Brazil Conference 2025.",
                     "Luan":"Luan Baraúna é doutor em Computação Aplicada pelo INPE, com formação em Física pela UFBA. Especialista em Inteligência Artificial, desenvolveu modelos baseados em redes neurais para detecção de padrões no espaço de Fourier.",
                     "Leonardo":"Leonardo Santos é Pesquisador Titular em Modelagem Computacional no CEMADEN-MCTI e professor em programas de pós-graduação do INPE e da UNIFESP. Doutor pelo INPE, com formação em Física pela UFBA, atuou também como professor visitante na Universidade Humboldt (Berlim).",
@@ -28,7 +29,9 @@ translations = {
                     },
     "English": {"title": "Operational Platform for Hydrological Forecasting using Explainable AI", 
                 "body1": "An operational platform focused on hydrological forecasting, utilizing Explainable Artificial Intelligence (XAI) techniques to support decision-making in critical scenarios.",
-                "body2": "This project is the result of direct and indirect work from many people — from undergraduate students to postdoctoral researchers, professors, and experts in the field.",
+                "body2": "This initiative is part of the iFAST project – Intelligent Tools for Flash Flood Alerts, hosted at Cemaden/MCTI and funded by CNPq and FAPESP."
+                "\n\nThis project is the result of the direct and indirect contributions of many people—from undergraduate students to postdoctoral researchers, professors, and domain experts. "
+                "We sincerely thank everyone who has contributed to this initiative and warmly welcome new collaborations.",
                 "Fernando": "Fernando Saraiva is an engineer from ITA and a master's student in Computer Science (Unifesp), focusing on Machine Learning. He led the project in the AI4GOOD initiative of the Brazil Conference 2025.",
                 "Luan": "Luan Baraúna holds a Ph.D. in Applied Computing from INPE, with a background in Physics from UFBA. An expert in Artificial Intelligence, he developed models based on neural networks for pattern detection in Fourier space.",
                 "Leonardo": "Leonardo Santos is a Titular Researcher in Computational Modeling at CEMADEN-MCTI and a professor in graduate programs at INPE and UNIFESP. He holds a Ph.D. from INPE, with a background in Physics from UFBA, and also served as a visiting professor at Humboldt University (Berlin).",
@@ -45,8 +48,9 @@ translations = {
                 "financiamento_body": "We thank the funding from CNPq (446053/2023-6) and FAPESP (24/02748-7), within the scope of the iFAST project - Intelligent Tools for Flash Flood Alerts.",
                 "apresentacao": "Project presentation at Brazil Conference 2025"},
     "Español": {"title": "Plataforma Operacional para Previsión Hidrológica usando IA Explicable",
-                "body1": "Una plataforma operacional centrada en la previsión hidrológica, utilizando técnicas de Inteligencia Artificial Explicable (XAI) para apoyar la toma de decisiones en escenarios críticos.",
-                "body2": "Este proyecto es el resultado del trabajo directo e indirecto de muchas personas — desde estudiantes de pregrado hasta investigadores postdoctorales, profesores y expertos en el campo.",
+                "body1": "Una plataforma operativa orientada a la predicción hidrológica, que utiliza técnicas de Inteligencia Artificial Explicable (XAI) para apoyar la toma de decisiones en escenarios críticos.",
+                "body2": "Iniciativa vinculada al proyecto iFAST – Herramientas Inteligentes para Alertas de Inundaciones Repentinas, con sede en Cemaden/MCTI y financiada por el CNPq y la FAPESP."
+                "\n\nEste proyecto es el resultado del trabajo directo e indirecto de numerosas personas, desde estudiantes de pregrado hasta investigadores posdoctorales, profesores y especialistas en el área. Agradecemos a todas las personas que han contribuido a esta iniciativa y estamos abiertos a nuevas colaboraciones.",
                 "Fernando": "Fernando Saraiva es ingeniero por el ITA y estudiante de maestría en Ciencias de la Computación (Unifesp), con enfoque en Machine Learning. Lideró el proyecto en la iniciativa AI4GOOD de la Brazil Conference 2025.",
                 "Luan": "Luan Baraúna tiene un doctorado en Computación Aplicada por INPE, con formación en Física por UFBA. Experto en Inteligencia Artificial, desarrolló modelos basados en redes neuronales para detección de patrones en el espacio de Fourier.",
                 "Leonardo": "Leonardo Santos es Investigador Titular en Modelado Computacional en CEMADEN-MCTI y profesor en programas de posgrado en INPE y UNIFESP. Tiene un doctorado por INPE, con formación en Física por UFBA, y también se desempeñó como profesor visitante en la Universidad Humboldt (Berlín).",
@@ -164,9 +168,21 @@ def main():
     # =========================
     st.header("🤝 " + translations[lang]["colaboradores_title"])
 
-    st.markdown("""
-    - (Voluntários da Brazil Conference)
-    """)
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("""
+        - Tarcisio Philips
+        - Vitória Lacerda
+        - Elton Vicente Escobar Silva
+        """)
+
+    with col2:
+        st.markdown("""
+        - Pedro Elardenberg Sousa e Souza
+        - André Canal
+        - Lucas Ribeiro
+        """)
 
     st.divider()
 
@@ -175,7 +191,23 @@ def main():
     # =========================
     st.header("💰 " + translations[lang]["financiamento_title"])
 
-    st.info(translations[lang]["financiamento_body"])
+    st.success("""
+    **Este projeto é desenvolvido no âmbito do projeto iFAST – Ferramentas Inteligentes para Alertas de Enxurradas**, sediado no Cemaden/MCTI, com apoio financeiro do:
+
+    • Conselho Nacional de Desenvolvimento Científico e Tecnológico (CNPq) – Processo 446053/2023-6
+
+    • Fundação de Amparo à Pesquisa do Estado de São Paulo (FAPESP) – Processo 24/02748-7
+    """)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    col1, col2, col3, col4 = st.columns([1, 2, 2, 1])
+
+    with col2:
+        st.image("img/logoCNPq.png", width=220)
+
+    with col3:
+        st.image("img/logoFAPESP.png", width=250)
 
 if __name__ == "__main__":
     main()
