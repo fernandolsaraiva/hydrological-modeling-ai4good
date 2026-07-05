@@ -39,7 +39,11 @@ translations = {
         "no_models_available":"Não há modelos disponíveis para a estação selecionada",
         "no_fluviometric_data":"Sem dados fluviométricos suficientes para gerar previsão",
         "shap_value_impact": "Impacto do Valor SHAP",
-        "features": "Features"
+        "features": "Features",
+        "start_date": "Data de Início",
+        "end_date": "Data de Término",
+        "datetime": "Data/Hora",
+        "select_model": "Selecione o Modelo",
     },
     "English": {
         "home": "Home",
@@ -82,7 +86,11 @@ translations = {
         "no_fluviometric_data":"Not enough fluviometric data to generate forecast",
         "shap_value_impact": "SHAP Value Impact",
         "features": "Features",
-        "explainability_chart_title": "Explainability Analysis"
+        "explainability_chart_title": "Explainability Analysis",
+        "start_date": "Start Date",
+        "end_date": "End Date",
+        "datetime": "Date/Time",
+        "select_model": "Select Model",
     },
     "Español": {
         "home": "Inicio",
@@ -125,6 +133,10 @@ translations = {
         "no_fluviometric_data":"No hay suficientes datos fluviométricos para generar pronóstico",
         "explainability_chart_title": "Análisis de Explicabilidad",
         "shap_value_impact": "Impacto del Valor SHAP",
-        "features": "Características"
+        "features": "Características",
+        "start_date": "Fecha de inicio",
+        "end_date": "Fecha de fin", 
+        "datetime": "Fecha/Hora",
+        "select_model": "Seleccionar modelo",
     },
 }
