@@ -174,12 +174,11 @@ def main():
         st.markdown("""
         - Tarcisio Philips
         - Vitória Lacerda
-        - Elton Vicente Escobar Silva
+        - Pedro Elardenberg Sousa e Souza
         """)
 
     with col2:
         st.markdown("""
-        - Pedro Elardenberg Sousa e Souza
         - André Canal
         - Lucas Ribeiro
         """)
