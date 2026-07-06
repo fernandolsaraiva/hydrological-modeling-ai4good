@@ -20,7 +20,7 @@ translations = {
             "não só a mitigação de riscos, mas também um planejamento superior do uso da água."
         ),
         "link_label": "Link para plataforma original",
-        "link": None
+        "link": "Link para configuração da plataforma original"
     },
     "English": {
         "title": "MORIS River Monitoring and Visualization Platform",
@@ -36,7 +36,7 @@ translations = {
             "of water use under normal conditions."
         ),
         "link_label": "Original platform link",
-        "link": None
+        "link": "Link to the original platform setup"
     },
     "Español": {
         "title": "Plataforma de Monitoreo y Visualización de los Ríos MORIS",
@@ -53,7 +53,7 @@ translations = {
             "planificación del uso del agua en condiciones normales."
         ),
         "link_label": "Enlace a la plataforma original",
-        "link": None
+        "link": "Link para la configuración de la plataforma original"
     }
 }
 
@@ -66,7 +66,13 @@ st.write(t["body2"])
 
 st.markdown("---")
 
-if t["link"]:
-    st.markdown(f"🔗 [{t['link_label']}]({t['link']})")
-else:
-    st.markdown("🔗 **Link para plataforma original:** em breve")
+# if t["link"]:
+#     st.markdown(f"🔗 [{t['link_label']}]({t['link']})")
+# else:
+    # st.markdown("🔗 **Link para plataforma original:** https://drive.google.com/drive/folders/1ooidwueE6fabWDCi7B_V52saJSesMMmK?usp=drive_link")
+
+# link externo (Streamlit + URL correta)
+
+st.markdown(
+    f"🔗 [{translations[lang]['link']}]({ 'https://drive.google.com/drive/folders/1ooidwueE6fabWDCi7B_V52saJSesMMmK?usp=drive_link' })"
+)
