@@ -1,0 +1,104 @@
+{
+    "Ribeir\u00e3o dos Couros - Piraporinha Casa Grande": {
+        "ATEN\u00c7\u00c3O": 761.54,
+        "ALERTA": 761.94,
+        "EMERGENCIA": 762.34,
+        "EXTRAVAZAMENTO": 762.74
+    },
+    "Ribeir\u00e3o dos Couros - Mercedes Paulic\u00e9ia": {
+        "ATEN\u00c7\u00c3O": 752.02,
+        "ALERTA": 752.42,
+        "EMERGENCIA": 752.82,
+        "EXTRAVAZAMENTO": 753.22
+    },
+    "Ribeir\u00e3o dos Couros - Ford": {
+        "ATEN\u00c7\u00c3O": 3.82,
+        "ALERTA": 4.82,
+        "EMERGENCIA": 5.81,
+        "EXTRAVAZAMENTO": 6.82
+    },
+    "Rio Tamanduate\u00ed - Vila Santa Cecilia": {
+        "ATEN\u00c7\u00c3O": 756.65,
+        "ALERTA": 757.15,
+        "EMERGENCIA": 757.65,
+        "EXTRAVAZAMENTO": 758.15
+    },
+    "Ribeir\u00e3o dos Meninos - Volks Demarch": {
+        "ATEN\u00c7\u00c3O": 773.4,
+        "ALERTA": 773.8,
+        "EMERGENCIA": 774.2,
+        "EXTRAVAZAMENTO": 774.6
+    },
+    "Ribeir\u00e3o Vermelho - Anhanguera": {
+        "ATEN\u00c7\u00c3O": 1.93,
+        "ALERTA": 2.33,
+        "EMERGENCIA": 2.73,
+        "EXTRAVAZAMENTO": 3.13
+    },
+    "Rio Tamanduate\u00ed - Montante AT -09 Guamiranga": {
+        "ATEN\u00c7\u00c3O": 1000,
+        "ALERTA": 1001,
+        "EMERGENCIA": 1002,
+        "EXTRAVAZAMENTO": 3
+    },
+    "Rio Tamanduate\u00ed - Jusante AT -09 Guamiranga": {
+        "ATEN\u00c7\u00c3O": 1000,
+        "ALERTA": 1001,
+        "EMERGENCIA": 1002,
+        "EXTRAVAZAMENTO": 3
+    },
+    "Rio Tamanduate\u00ed - Prosperidade": {
+        "ATEN\u00c7\u00c3O": 2.95,
+        "ALERTA": 3.55,
+        "EMERGENCIA": 4.15,
+        "EXTRAVAZAMENTO": 4.75
+    },
+    "Rio Aricanduva - Foz": {
+        "ATEN\u00c7\u00c3O": 4.35,
+        "ALERTA": 4.95,
+        "EMERGENCIA": 5.55,
+        "EXTRAVAZAMENTO": 6.15
+    },
+    "Ribeir\u00e3o dos Couros - Jd Tabo\u00e3o": {
+        "ATEN\u00c7\u00c3O": 741.05,
+        "ALERTA": 741.41,
+        "EMERGENCIA": 742.78,
+        "EXTRAVAZAMENTO": 742.14
+    },
+    "C\u00f3rrego Orat\u00f3rio - Vila Prudente": {
+        "ATEN\u00c7\u00c3O": 737.7,
+        "ALERTA": 738.0,
+        "EMERGENCIA": 738.3,
+        "EXTRAVAZAMENTO": 738.6
+    },
+    "Rio Tamanduate\u00ed - Vd. Pacheco Chaves": {
+        "ATEN\u00c7\u00c3O": 726.2,
+        "ALERTA": 726.9,
+        "EMERGENCIA": 727.6,
+        "EXTRAVAZAMENTO": 728.3
+    },
+    "Rio Tamanduate\u00ed - Mercado Municipal": {
+        "ATEN\u00c7\u00c3O": 6.09,
+        "ALERTA": 6.89,
+        "EMERGENCIA": 7.69,
+        "EXTRAVAZAMENTO": 8.49
+    },
+    "C\u00f3rrego \u00c1gua Espraiada - Cabeceira": {
+        "ATEN\u00c7\u00c3O": 1.8,
+        "ALERTA": 2.25,
+        "EMERGENCIA": 2.7,
+        "EXTRAVAZAMENTO": 3.15
+    },
+    "C\u00f3rrego Ipiranga - P\u00e7. Leonor Kaupa": {
+        "ATEN\u00c7\u00c3O": 730.75,
+        "ALERTA": 731.2,
+        "EMERGENCIA": 731.65,
+        "EXTRAVAZAMENTO": 732.0
+    },
+    "C\u00f3rrego Moinho Velho - R. Dois de Julho": {
+        "ATEN\u00c7\u00c3O": 1000,
+        "ALERTA": 1001,
+        "EMERGENCIA": 1002,
+        "EXTRAVAZAMENTO": 3
+    }
+}
