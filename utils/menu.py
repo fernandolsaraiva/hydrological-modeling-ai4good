@@ -14,7 +14,7 @@ def render_menu():
     # ==========================
     # LOGO NO TOPO
     # ==========================
-    logo = Image.open("img/logo_ifast.png")
+    logo = Image.open("img/logoxai.png")
     st.sidebar.image(logo, width=250)
     
     st.sidebar.markdown("<br>", unsafe_allow_html=True)  # pequeno espaçamento
