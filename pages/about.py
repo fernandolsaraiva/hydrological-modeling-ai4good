@@ -100,8 +100,12 @@ def main():
     st.markdown(translations[lang]["body1"])
     st.markdown(translations[lang]["body2"])
 
+    st.warning(
+        "Em breve: Cadastro de emails e celular para recebimento de notificações, e vinculação com ferramenta de roteamento"
+    )
+
     st.divider()
-    
+
     # =========================
     # EQUIPE PRINCIPAL
     # =========================

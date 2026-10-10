@@ -1,3 +1,4 @@
+import json
 import os
 
 import pandas as pd
@@ -158,8 +159,21 @@ def get_station_names_and_critical_levels():
     df.columns = df.columns.str.lower()
     df.rename(columns={'datahora': 'timestamp', 'datetime': 'timestamp'}, inplace=True)
     conn.close()
+
     station_names = df['name'].tolist()
-    critical_levels = df['critical_levels'].tolist()
+    critical_levels = []
+
+    for value in df['critical_levels'].tolist():
+        if isinstance(value, str):
+            try:
+                critical_levels.append(json.loads(value))
+            except (TypeError, ValueError):
+                critical_levels.append({})
+        elif isinstance(value, dict):
+            critical_levels.append(value)
+        else:
+            critical_levels.append({})
+
     return station_names, critical_levels
 
 def get_station_code_flu(station_name):
