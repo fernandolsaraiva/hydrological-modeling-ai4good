@@ -107,7 +107,7 @@ st.title(translations2[lang]["title"])
 #     )
 #     return fig
 
-def plot_predictions(y_test, y_pred, timestamps, critical_levels, station_name, option="current", last_available_date=None):
+def plot_predictions(y_test, y_pred, timestamps, critical_levels, station_name, option="current", last_available_date=None, show_critical_levels=True):
     # y_test_m = [value / 100 for value in y_test]
     # y_pred_m = [value / 100 for value in y_pred]
 
@@ -138,10 +138,10 @@ def plot_predictions(y_test, y_pred, timestamps, critical_levels, station_name, 
 
     # 📌 Critical levels (igual gráfico 1)
     critical_colors = {
-        "ALERT": "#2ca02c",
-        "WARNING": "#ff7f0e",
-        "EMERGENCY": "#d62728",
-        "OVERFLOW": "#9467bd"
+        "ALERT": "green",
+        "WARNING": "#F2C94C",
+        "EMERGENCY": "#F2994A",
+        "OVERFLOW": "#EB5757"
     }
 
     critical_colors_translations = {
@@ -150,20 +150,41 @@ def plot_predictions(y_test, y_pred, timestamps, critical_levels, station_name, 
         "EMERGENCIA": "EMERGENCY",
         "EXTRAVAZAMENTO": "OVERFLOW"
     }
+    color_translations = {"ALERTA": "ALERT", "ATENÇÃO": "WARNING", "EMERGENCIA": "EMERGENCY", "EXTRAVAZAMENTO": "OVERFLOW"}
 
     min_timestamp = min(timestamps)
     max_timestamp = max(timestamps)
 
-    for level, value in critical_levels.items():
-        translated_level = critical_colors_translations[level]
+    if show_critical_levels:
+        for level, value in critical_levels.items():
 
-        fig.add_trace(go.Scatter(
-            x=[min_timestamp, max_timestamp],
-            y=[value, value],
-            mode='lines',
-            line=dict(color=critical_colors[translated_level], dash='dash'),
-            name=translated_level
-        ))
+            label = translations[lang].get(
+                color_translations.get(level, ""),
+                level
+            )
+
+            fig.add_trace(go.Scatter(
+                x=[min_timestamp, max_timestamp],
+                y=[value, value],
+                mode="lines",
+                line=dict(
+                    color=critical_colors[color_translations.get(level)],
+                    dash="dash"
+                ),
+                name=label
+            ))
+
+    #for level, value in critical_levels.items():
+    #    #translated_level = critical_colors_translations[level]
+    #    translated_level = translations[lang].get(color_translations.get(level).lower())
+
+    #    fig.add_trace(go.Scatter(
+    #        x=[min_timestamp, max_timestamp],
+    #        y=[value, value],
+    #        mode='lines',
+    #       line=dict(color=critical_colors[translated_level], dash='dash'),
+    #        name=translated_level
+    #    ))
 
     river_level_title = translations[lang]["river_level"] + f' - {station_name}'
 
@@ -195,10 +216,17 @@ def plot_predictions(y_test, y_pred, timestamps, critical_levels, station_name, 
         ),
         legend=dict(
             orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1
+            yanchor="top",
+            y=-0.20,
+            xanchor="center",
+            x=0.5,
+            font=dict(size=11)
+        ),
+        margin=dict(
+            l=60,
+            r=30,
+            t=80,
+            b=120
         )
     )
 
@@ -224,10 +252,18 @@ if __name__ == "__main__":
 
     station_names, critical_levels = get_station_names_and_critical_levels()
     default_station = 'Rio Tamanduateí - Mercado Municipal'
-    if default_station in station_names:
-        station_name = st.selectbox(translations[lang]["select_station"], station_names, index=station_names.index(default_station))
-    else:
-        station_name = st.selectbox(translations[lang]["select_station"], station_names)
+    #if default_station in station_names:
+    #    station_name = st.selectbox(translations[lang]["select_station"], station_names, index=station_names.index(default_station))
+    #else:
+    #    station_name = st.selectbox(translations[lang]["select_station"], station_names)
+    station_name = st.selectbox(
+        translations[lang]["select_station"],
+        station_names,
+        index=station_names.index(default_station)
+        if default_station in station_names else 0,
+        disabled=True
+    )
+
     selected_index = station_names.index(station_name)
     selected_critical_level = critical_levels[selected_index]
 
@@ -246,6 +282,12 @@ if __name__ == "__main__":
     end_time = pd.to_datetime(end_time)+timedelta(days=1)
 
     # print("Dados escolhidos: ", start_time, end_time, horizon)
+
+    show_critical_levels = st.checkbox(
+        translations[lang]["show_critical_levels"],
+        value=True,
+        key="show_critical_levels"
+    )
 
     if st.button(translations[lang]["plot"]):
         station_code = get_station_code_flu(station_name)
@@ -301,7 +343,7 @@ if __name__ == "__main__":
                     rmse = np.sqrt(mean_squared_error(y_test_filtered, y_pred_filtered))
                     st.write(f'RMSE: {rmse}')
 
-                    fig_pred = plot_predictions(y_test_filtered, y_pred_filtered, adjusted_timestamps_filtered, critical_levels=selected_critical_level, station_name=station_name, option="historical")
+                    fig_pred = plot_predictions(y_test_filtered, y_pred_filtered, adjusted_timestamps_filtered, critical_levels=selected_critical_level, station_name=station_name, option="historical", show_critical_levels=show_critical_levels)
 
                     # Tabs
                     tab1, tab2 = st.tabs([translations[lang]["forecast"], translations[lang]["explainability"]])

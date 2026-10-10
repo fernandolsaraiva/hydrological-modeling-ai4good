@@ -44,10 +44,14 @@ lang = st.session_state.get("lang", "Português")  # Default to Portuguese if no
 
 # Display text based on selection
 st.title(translations2[lang]["title"] + "Floodcasting XAI Alert System")
-st.write(translations2[lang]["body"])
+#st.divider()
+st.warning(
+        "Em breve: Cadastro de emails e celular para recebimento de notificações, e vinculação com ferramenta de roteamento"
+    )
 
-st.divider()
+
 st.subheader(translations2[lang]["subtitle1"])
+st.write(translations2[lang]["body"])
 
 cards_data = [
     {

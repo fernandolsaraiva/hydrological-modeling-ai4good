@@ -75,7 +75,7 @@ BACKGROUND_COLOR = "#ffffff"
 GRID_COLOR = "#e5e5e5"
 FONT_FAMILY = "Arial"
 
-def plot_river_level(data, station_name, last_available_date,critical_levels, prediction_data=None, option = translations[lang]["current_time"]):
+def plot_river_level(data, station_name, last_available_date,critical_levels, prediction_data=None, option = translations[lang]["current_time"], show_critical_levels=True):
     # data['value'] = data['value'] / 100
     data['value'] = data['value']
     fig = px.line(data, x='timestamp', y='value')
@@ -104,7 +104,25 @@ def plot_river_level(data, station_name, last_available_date,critical_levels, pr
         )
     
     river_level_title = translations[lang]["river_level"] + f' - {station_name}'
-    fig.update_layout(title={'text': river_level_title , 'x': 0.5, 'xanchor': 'center','font': {'size': 20}}, height=600)
+    #fig.update_layout(title={'text': river_level_title , 'x': 0.5, 'xanchor': 'center','font': {'size': 20}}, height=600)
+    fig.update_layout(
+        title={
+            'text': river_level_title,
+            'x': 0.5,
+            'xanchor': 'center',
+            'font': {'size': 20}
+        },
+        height=600,
+        legend=dict(
+            orientation="h",
+            yanchor="top",
+            y=-0.20,
+            xanchor="center",
+            x=0.5,
+            font=dict(size=11)
+        ),
+        margin=dict(b=100)
+    )
     
     if option == translations[lang]["current_time"]:
         current_time = datetime.now(pytz.timezone('America/Sao_Paulo'))
@@ -124,16 +142,16 @@ def plot_river_level(data, station_name, last_available_date,critical_levels, pr
     # Adicionar linhas horizontais para os níveis críticos com legendas
     critical_colors = {
         "ALERT": "green",
-        "WARNING": "orange",
-        "EMERGENCY": "purple",
-        "OVERFLOW": "pink"
+        "WARNING": "#F2C94C",
+        "EMERGENCY": "#F2994A",
+        "OVERFLOW": "#EB5757"
     }
-    
     color_translations = {"ALERTA": "ALERT", "ATENÇÃO": "WARNING", "EMERGENCIA": "EMERGENCY", "EXTRAVAZAMENTO": "OVERFLOW"}
-    
-    for level, value in critical_levels.items():
-        translated_level = color_translations[level]
-        fig.add_scatter(x=[min_timestamp, max_timestamp], y=[value, value], mode='lines', line=dict(color=critical_colors[translated_level], dash='dash'), name=translated_level)
+
+    if show_critical_levels:
+        for level, value in critical_levels.items():
+            translated_level = translations[lang].get(color_translations.get(level).lower())  # Use the translation if available, otherwise use the original level
+            fig.add_scatter(x=[min_timestamp, max_timestamp], y=[value, value], mode='lines', line=dict(color=critical_colors[color_translations.get(level)], dash='dash'), name=translated_level)
 
 
     fig.update_yaxes(title_text=translations[lang]["river_level"] + ' (m)')
@@ -157,7 +175,16 @@ if __name__ == "__main__":
     }
 
     with col1:
-        station_name = st.selectbox(translations[lang]["select_station"], station_names, index=station_names.index(default_station) if default_station in station_names else 0)
+        #station_name = st.selectbox(translations[lang]["select_station"], station_names, index=station_names.index(default_station) if default_station in station_names else 0)
+        default_station = 'Rio Tamanduateí - Mercado Municipal'
+
+        station_name = st.selectbox(
+            translations[lang]["select_station"],
+            station_names,
+            index=station_names.index(default_station)
+            if default_station in station_names else 0,
+            disabled=True
+        )
 
     with col2:
         option = st.radio(
@@ -199,6 +226,12 @@ if __name__ == "__main__":
         formatted_datetime = utc_datetime.strftime(
             '%Y-%m-%d %H:%M:%S.%f'
         )[:-3] + ' +0000'
+
+    show_critical_levels = st.checkbox(
+        translations[lang]["show_critical_levels"],
+        value=True,
+        key="show_critical_levels"
+    )
 
     # =========================
     # BUTTON
@@ -351,7 +384,8 @@ if __name__ == "__main__":
             last_available_date=last_available_date,
             critical_levels=selected_critical_level,
             prediction_data=prediction_df,
-            option=option
+            option=option,
+            show_critical_levels=show_critical_levels
         )
 
         # =========================
@@ -399,7 +433,7 @@ if __name__ == "__main__":
             selected_horizon = st.selectbox(
                 translations[lang]["select_horizon"],
                 model_options,
-                index=3,
+                index=0,
                 key="selected_horizon_exp"
             )
 

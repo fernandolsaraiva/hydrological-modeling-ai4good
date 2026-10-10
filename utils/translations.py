@@ -44,6 +44,11 @@ translations = {
         "end_date": "Data de Término",
         "datetime": "Data/Hora",
         "select_model": "Selecione o Modelo",
+        "alert": "ALERTA",
+        "warning": "ATENÇÃO",
+        "emergency": "EMERGÊNCIA",
+        "overflow": "EXTRAVAZAMENTO",
+        "show_critical_levels": "Mostrar cotas críticas (clique em 'Plotar Gráfico')"
     },
     "English": {
         "home": "Home",
@@ -91,6 +96,11 @@ translations = {
         "end_date": "End Date",
         "datetime": "Date/Time",
         "select_model": "Select Model",
+        "alert": "ALERT",
+        "warning": "WARNING",
+        "emergency": "EMERGENCY",
+        "overflow": "OVERFLOW",
+        "show_critical_levels": "Show critical levels (click 'Plot Graph')"
     },
     "Español": {
         "home": "Inicio",
@@ -138,5 +148,10 @@ translations = {
         "end_date": "Fecha de fin", 
         "datetime": "Fecha/Hora",
         "select_model": "Seleccionar modelo",
+        "alert": "ALERTA",
+        "warning": "ADVERTENCIA",
+        "emergency": "EMERGENCIA",
+        "overflow": "DESBORDAMIENTO",
+        "show_critical_levels": "Mostrar niveles críticos (haga clic en 'Graficar')"
     },
 }
