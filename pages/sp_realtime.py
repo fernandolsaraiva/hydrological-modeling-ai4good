@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from queue import Empty
 from utils.menu import render_menu
 
@@ -167,7 +167,7 @@ if __name__ == "__main__":
 
     default_station = 'Rio Tamanduateí - Mercado Municipal'
 
-    col1, col2 = st.columns([2, 1])
+    col1, col2 = st.columns([2, 2])
 
     options = {
         "current": translations[lang]["current_moment"],
@@ -190,26 +190,63 @@ if __name__ == "__main__":
         option = st.radio(
             translations[lang]["prediction_option"],
             options.keys(),
-            format_func=lambda x: options[x]
+            format_func=lambda x: options[x],
+            horizontal=True
         )
 
     selected_index = station_names.index(station_name)
     selected_critical_level = critical_levels[selected_index]
+    show_critical_levels = True
 
     if option == "past":
 
-        col3, col4 = st.columns(2)
+        col3, col4, col8, col9 = st.columns(4)
+
+        today = pd.to_datetime('today').date()
 
         with col3:
-            selected_date = st.date_input(translations[lang]["select_date"], value=pd.to_datetime('today').date())
+            #lang = st.session_state.get("lang", "Português")
+
+            if lang in ("Português", "Español"):
+                date_format = "DD/MM/YYYY"
+            else:
+                date_format = "MM/DD/YYYY"
+
+            selected_date = st.date_input(
+                translations[lang]["select_date"],
+                value=today,
+                format=date_format
+            )
+
+        now_local = datetime.now(sao_paulo_tz)
 
         if 'selected_time' not in st.session_state:
-            st.session_state.selected_time = pd.to_datetime('now').time()
+            st.session_state.selected_time = now_local.time()
+
+        available_times = [
+            datetime.strptime(f"{hour:02d}:{minute:02d}", "%H:%M").time()
+            for hour in range(24)
+            for minute in range(0, 60, 10)
+        ]
+
+        if selected_date == today:
+            available_times = [
+                t for t in available_times
+                if t <= now_local.time()
+            ]
+
+        if not available_times:
+            available_times = [now_local.time()]
+
+        if st.session_state.selected_time not in available_times:
+            st.session_state.selected_time = available_times[-1]
 
         with col4:
-            selected_time = st.time_input(
+            selected_time = st.selectbox(
                 translations[lang]["select_time"],
-                value=st.session_state.selected_time
+                options=available_times,
+                index=available_times.index(st.session_state.selected_time),
+                format_func=lambda t: t.strftime('%H:%M')
             )
 
         st.session_state.selected_time = selected_time
@@ -220,12 +257,16 @@ if __name__ == "__main__":
         )
 
         localized_datetime = sao_paulo_tz.localize(selected_datetime)
+        print("Localized datetime:", localized_datetime)
 
         utc_datetime = localized_datetime.astimezone(pytz.utc)
+        print("UTC datetime:", utc_datetime)
 
         formatted_datetime = utc_datetime.strftime(
             '%Y-%m-%d %H:%M:%S.%f'
         )[:-3] + ' +0000'
+
+        print("Formatted datetime:", formatted_datetime)
 
     show_critical_levels = st.checkbox(
         translations[lang]["show_critical_levels"],
@@ -242,9 +283,11 @@ if __name__ == "__main__":
 
         if option == "current":
             last_available_date = get_last_available_date(station_code)
+            print("Last available date:", last_available_date)
         else:
             last_available_date = formatted_datetime
             last_available_date = pd.to_datetime(last_available_date)
+            print("Last available date:", last_available_date)
 
         end_time = last_available_date
 
@@ -254,6 +297,10 @@ if __name__ == "__main__":
         
         with st.spinner(translations[lang]["loading"]):
             df = load_data(start_time, end_time)
+
+        if df is None or df.empty or 'timestamp' not in df.columns:
+            st.warning(translations[lang]["no_data_available"])
+            st.stop()
 
         df['timestamp'] = pd.to_datetime(
             df['timestamp']

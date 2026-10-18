@@ -269,11 +269,16 @@ if __name__ == "__main__":
 
     col1, col2, col3 = st.columns([2, 2, 1])  
 
+    if lang == "Português" or lang == "Español":
+        date_format = "DD/MM/YYYY" 
+    elif lang == "English":
+        date_format = "MM/DD/YYYY"
+
     with col1:
-        start_time = st.date_input(translations[lang]["select_start_date"], value=pd.to_datetime('today').date() - timedelta(days=7))
+        start_time = st.date_input(translations[lang]["select_start_date"], value=pd.to_datetime('today').date() - timedelta(days=7), format=date_format)
 
     with col2:
-        end_time = st.date_input(translations[lang]["select_end_date"], value=pd.to_datetime('today').date())
+        end_time = st.date_input(translations[lang]["select_end_date"], value=pd.to_datetime('today').date(), format=date_format)
 
     with col3:
         selected_horizon = st.selectbox(translations[lang]["select_horizon"], list(range(10, 130, 10)), index=0)
