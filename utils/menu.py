@@ -1,35 +1,8 @@
 import streamlit as st
-import streamlit.components.v1 as components
 from PIL import Image
 from utils.translations import translations
 
-
-def force_https():
-    """Redireciona http:// para https:// no navegador (exceto em localhost)."""
-    components.html(
-        """
-        <script>
-          try {
-            const loc = window.parent.location;
-            const isLocal = ["localhost", "127.0.0.1"].includes(loc.hostname);
-            if (loc.protocol === "http:" && !isLocal) {
-              loc.replace("https://" + loc.host + loc.pathname + loc.search);
-            }
-          } catch (e) {
-            console.log("HTTPS redirect failed:", e);
-          }
-        </script>
-        """,
-        height=0,
-    )
-
-
 def render_menu():
-    # ==========================
-    # Força HTTPS
-    # ==========================
-    force_https()
-
     # ==========================
     # Inicializa idioma
     # ==========================
@@ -43,7 +16,7 @@ def render_menu():
     # ==========================
     logo = Image.open("img/logoxai.png")
     st.sidebar.image(logo, width=250)
-
+    
     st.sidebar.markdown("<br>", unsafe_allow_html=True)  # pequeno espaçamento
 
     # ==========================
